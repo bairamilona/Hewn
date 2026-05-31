@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Hewn" />
+<meta name="theme-color" content="#F4F1EA" />
+<link rel="apple-touch-icon" href="data:image/png;base64,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" />
+<title>Hewn</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #F4F1EA; overscroll-behavior: none; }
+  * { -webkit-tap-highlight-color: transparent; }
+  @keyframes hewnFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  button:focus { outline: none; }
+</style>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useCallback } = React;
+
+const C = {
+  base: "#F4F1EA", ink: "#1A1815",
+  inkMute: "rgba(26,24,21,0.40)", inkFaint: "rgba(26,24,21,0.10)",
+  accent: "#BE7A4E", accentSoft: "rgba(190,122,78,0.16)",
+};
+const lerp = (a, b, t) => a + (b - a) * t;
+const easeIO = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+/* ---- inline icons ------------------------------------------------- */
+function Ico({ children, size = 18, sw = 1.6 }) {
+  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">{children}</svg>);
+}
+const ISettings = (p) => <Ico {...p}><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="7" r="3"/><circle cx="7" cy="17" r="3"/></Ico>;
+const IReset = (p) => <Ico {...p}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></Ico>;
+const IMinus = (p) => <Ico {...p}><path d="M5 12h14"/></Ico>;
+const IPlus = (p) => <Ico {...p}><path d="M12 5v14"/><path d="M5 12h14"/></Ico>;
+const IX = (p) => <Ico {...p}><path d="M18 6 6 18"/><path d="M6 6l12 12"/></Ico>;
+
+/* ---- textures ----------------------------------------------------- */
+function radialTex(inner, outer) {
+  const cv = document.createElement("canvas"); cv.width = cv.height = 256;
+  const g = cv.getContext("2d");
+  const grd = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+  grd.addColorStop(0, inner); grd.addColorStop(1, outer);
+  g.fillStyle = grd; g.fillRect(0, 0, 256, 256);
+  return new THREE.CanvasTexture(cv);
+}
+function studioEquirect() {
+  const cv = document.createElement("canvas"); cv.width = 512; cv.height = 256;
+  const g = cv.getContext("2d");
+  const grd = g.createLinearGradient(0, 0, 0, 256);
+  grd.addColorStop(0.0, "#cfd4d8"); grd.addColorStop(0.32, "#f1ede3");
+  grd.addColorStop(0.55, "#e7dbc4"); grd.addColorStop(0.78, "#6b6354");
+  grd.addColorStop(1.0, "#3a352f");
+  g.fillStyle = grd; g.fillRect(0, 0, 512, 256);
+  const t = new THREE.CanvasTexture(cv);
+  t.mapping = THREE.EquirectangularReflectionMapping;
+  return t;
+}
+
+/* ---- WebGL stone -------------------------------------------------- */
+function StoneCanvas({ polish, definition, complete }) {
+  const mount = useRef(null);
+  const api = useRef(null);
+
+  useEffect(() => {
+    const node = mount.current;
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    node.appendChild(renderer.domElement);
+    renderer.domElement.style.display = "block";
+    renderer.domElement.style.touchAction = "none";
+    renderer.domElement.style.cursor = "grab";
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+    camera.position.set(0, 0.05, 5.2);
+    camera.lookAt(0, 0, 0);
+
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    pmrem.compileEquirectangularShader();
+    const eq = studioEquirect();
+    const envRT = pmrem.fromEquirectangular(eq);
+    scene.environment = envRT.texture;
+    eq.dispose();
+
+    const hemi = new THREE.HemisphereLight(0xf4efe6, 0x4a4338, 0.55); scene.add(hemi);
+    const key = new THREE.DirectionalLight(0xfff6e8, 1.15); key.position.set(-3, 5, 4); scene.add(key);
+    const fill = new THREE.DirectionalLight(0xdfe6ee, 0.32); fill.position.set(4, 1, 3); scene.add(fill);
+    const rim = new THREE.DirectionalLight(0xffffff, 0.42); rim.position.set(0, 2.5, -5); scene.add(rim);
+    const accent = new THREE.DirectionalLight(0xd98a4f, 0.0); accent.position.set(2, 3, 3); scene.add(accent);
+
+    const group = new THREE.Group(); group.scale.setScalar(0.82); scene.add(group);
+
+    const N = 48, SEG = 72, RMAX = 0.62, yBot = -1.25, yTop = 1.35;
+    const pts = [];
+    for (let i = 0; i <= N; i++) {
+      const t = i / N;
+      const y = yBot + (yTop - yBot) * t;
+      const r = Math.sin(Math.PI * Math.pow(t, 0.7)) * RMAX;
+      pts.push(new THREE.Vector2(Math.max(0.0001, r), y));
+    }
+    const geo = new THREE.LatheGeometry(pts, SEG);
+    geo.computeVertexNormals();
+
+    const posAttr = geo.attributes.position, normAttr = geo.attributes.normal;
+    const count = posAttr.count;
+    const basePos = Float32Array.from(posAttr.array);
+    const baseNorm = Float32Array.from(normAttr.array);
+
+    const MAXAMP = 0.085;
+    const noise = new Float32Array(count);
+    for (let i = 0; i < count; i++) {
+      const x = basePos[i*3], y = basePos[i*3+1], z = basePos[i*3+2];
+      let n = 0.55*Math.sin(3.1*x+1.7)*Math.cos(2.7*y)
+        + 0.30*Math.sin(5.3*y+0.6)*Math.sin(4.1*z)
+        + 0.22*Math.sin(7.0*(x+z)+2.0);
+      const radial = Math.sqrt(x*x+z*z);
+      noise[i] = n * Math.min(1, radial/0.22);
+    }
+    const roughGeo = geo.clone();
+    const rp = roughGeo.attributes.position.array;
+    for (let i = 0; i < count; i++)
+      for (let c = 0; c < 3; c++)
+        rp[i*3+c] = basePos[i*3+c] + baseNorm[i*3+c]*noise[i]*MAXAMP;
+    roughGeo.computeVertexNormals();
+    const roughNorm = Float32Array.from(roughGeo.attributes.normal.array);
+    roughGeo.dispose();
+
+    const mat = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color("#dad2c0"), metalness: 0.0, roughness: 0.92,
+      clearcoat: 0.0, clearcoatRoughness: 0.6, envMapIntensity: 0.15,
+    });
+    const stone = new THREE.Mesh(geo, mat); group.add(stone);
+
+    const plinth = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.66, 0.7, 0.1, 64),
+      new THREE.MeshStandardMaterial({ color: "#a99c83", roughness: 0.75, metalness: 0 }));
+    plinth.position.y = yBot - 0.06; group.add(plinth);
+
+    const shadow = new THREE.Mesh(
+      new THREE.PlaneGeometry(2.4, 2.4),
+      new THREE.MeshBasicMaterial({ map: radialTex("rgba(20,18,14,0.42)","rgba(20,18,14,0)"), transparent: true, depthWrite: false }));
+    shadow.rotation.x = -Math.PI/2; shadow.position.y = yBot - 0.11; group.add(shadow);
+
+    const halo = new THREE.Mesh(
+      new THREE.PlaneGeometry(4, 4),
+      new THREE.MeshBasicMaterial({ map: radialTex("rgba(190,122,78,0.5)","rgba(190,122,78,0)"), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 }));
+    halo.position.set(0, 0.05, -0.6); group.add(halo);
+
+    let lastT = -1; const tmp = new THREE.Vector3();
+    function applyForm(t) {
+      if (Math.abs(t - lastT) < 0.003) return; lastT = t;
+      const pa = posAttr.array, na = normAttr.array;
+      for (let i = 0; i < count; i++) {
+        const k = i*3, amp = noise[i]*MAXAMP*t;
+        pa[k] = basePos[k] + baseNorm[k]*amp;
+        pa[k+1] = basePos[k+1] + baseNorm[k+1]*amp;
+        pa[k+2] = basePos[k+2] + baseNorm[k+2]*amp;
+        tmp.set(lerp(baseNorm[k],roughNorm[k],t), lerp(baseNorm[k+1],roughNorm[k+1],t), lerp(baseNorm[k+2],roughNorm[k+2],t)).normalize();
+        na[k]=tmp.x; na[k+1]=tmp.y; na[k+2]=tmp.z;
+      }
+      posAttr.needsUpdate = true; normAttr.needsUpdate = true;
+    }
+
+    const S = {
+      pTar: 0, dTar: 0, cTar: false, p: 0, d: 0, warm: 0,
+      presenting: false, presentEl: 0, prevC: false, rot: 0, t0: performance.now(),
+      dragging: false, tiltTX: 0, tiltTY: 0, tiltX: 0, tiltY: 0,
+    };
+    api.current = (pol, def, comp) => { S.pTar = pol; S.dTar = def; S.cTar = comp; };
+
+    const el = renderer.domElement;
+    const TILT_MAX = 0.20, K = 0.006;
+    let dpx = 0, dpy = 0;
+    const onDown = (e) => { S.dragging = true; dpx = e.clientX; dpy = e.clientY; el.setPointerCapture?.(e.pointerId); el.style.cursor = "grabbing"; navigator.vibrate?.(6); };
+    const onMove = (e) => {
+      if (!S.dragging) return;
+      const dx = e.clientX - dpx, dy = e.clientY - dpy; dpx = e.clientX; dpy = e.clientY;
+      S.tiltTY = Math.max(-TILT_MAX, Math.min(TILT_MAX, S.tiltTY + dx*K));
+      S.tiltTX = Math.max(-TILT_MAX, Math.min(TILT_MAX, S.tiltTX + dy*K));
+    };
+    const onUp = () => { S.dragging = false; S.tiltTX = 0; S.tiltTY = 0; el.style.cursor = "grab"; };
+    el.addEventListener("pointerdown", onDown);
+    el.addEventListener("pointermove", onMove);
+    el.addEventListener("pointerup", onUp);
+    el.addEventListener("pointercancel", onUp);
+
+    const colRaw = new THREE.Color("#dad2c0");
+    const colPol = new THREE.Color("#ece3d0");
+    const colWarm = new THREE.Color("#f1e2c6");
+
+    let raf;
+    function frame() {
+      const now = performance.now();
+      const dt = Math.min(0.05, (now - S.t0)/1000); S.t0 = now;
+      const time = now/1000;
+
+      S.p = lerp(S.p, S.pTar, 0.10);
+      S.d = lerp(S.d, S.dTar, 0.10);
+      S.warm = lerp(S.warm, S.cTar ? 1 : 0, 0.06);
+
+      mat.roughness = lerp(0.92, 0.16, S.p);
+      mat.clearcoat = lerp(0.0, 0.5, S.p);
+      mat.clearcoatRoughness = lerp(0.6, 0.12, S.p);
+      mat.envMapIntensity = lerp(0.15, 1.0, S.p);
+      mat.color.copy(colRaw).lerp(colPol, S.p).lerp(colWarm, S.warm*0.5);
+
+      applyForm(1 - S.d);
+
+      if (S.cTar && !S.prevC) { S.presenting = true; S.presentEl = 0; }
+      S.prevC = S.cTar;
+      accent.intensity = S.warm * 0.9;
+      halo.material.opacity = S.warm * 0.6;
+
+      S.rot += (S.dragging ? 0.02 : 0.16) * dt;
+      let spin = 0;
+      if (S.presenting) {
+        S.presentEl += dt;
+        const pr = Math.min(1, S.presentEl/4);
+        spin = easeIO(pr)*Math.PI*2;
+        if (pr >= 1) { S.presenting = false; S.rot += Math.PI*2; }
+      }
+      S.tiltX = lerp(S.tiltX, S.tiltTX, 0.12);
+      S.tiltY = lerp(S.tiltY, S.tiltTY, 0.12);
+      group.rotation.x = S.tiltX;
+      group.rotation.y = S.rot + spin + S.tiltY;
+      group.scale.setScalar(0.82 * (1 + 0.012*Math.sin(time*(Math.PI*2)/6)));
+
+      renderer.render(scene, camera);
+      raf = requestAnimationFrame(frame);
+    }
+    raf = requestAnimationFrame(frame);
+
+    function resize() {
+      const w = node.clientWidth, h = node.clientHeight;
+      if (!w || !h) return;
+      renderer.setSize(w, h, false);
+      camera.aspect = w/h; camera.updateProjectionMatrix();
+    }
+    resize();
+    const ro = new ResizeObserver(resize); ro.observe(node);
+
+    return () => {
+      cancelAnimationFrame(raf); ro.disconnect();
+      el.removeEventListener("pointerdown", onDown);
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerup", onUp);
+      el.removeEventListener("pointercancel", onUp);
+      geo.dispose(); mat.dispose();
+      plinth.geometry.dispose(); plinth.material.dispose();
+      shadow.geometry.dispose(); shadow.material.map.dispose(); shadow.material.dispose();
+      halo.geometry.dispose(); halo.material.map.dispose(); halo.material.dispose();
+      envRT.texture.dispose(); pmrem.dispose(); renderer.dispose();
+      if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
+    };
+  }, []);
+
+  useEffect(() => { api.current?.(polish, definition, complete); }, [polish, definition, complete]);
+  return <div ref={mount} style={{ width: "100%", height: "100%" }} />;
+}
+
+/* ---- UI primitives ------------------------------------------------ */
+function ProgressLine({ pct }) {
+  return (<div style={{ position: "relative", height: 1.5, background: C.inkFaint, borderRadius: 2 }}>
+    <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: (pct*100)+"%", background: C.accent, borderRadius: 2, transition: "width 420ms cubic-bezier(.25,.1,.25,1)" }} />
+  </div>);
+}
+function Chip({ label, onTap, dim }) {
+  const [press, setPress] = useState(false);
+  return (<button onPointerDown={() => setPress(true)} onPointerUp={() => setPress(false)} onPointerLeave={() => setPress(false)} onClick={onTap} disabled={dim}
+    style={{ flex: 1, height: 58, border: "none", borderRadius: 16, cursor: dim ? "default" : "pointer",
+      background: press ? C.accentSoft : "rgba(26,24,21,0.045)", color: dim ? C.inkMute : C.ink,
+      fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 17, fontWeight: 500, letterSpacing: "0.01em",
+      opacity: dim ? 0.45 : 1, transition: "background 160ms ease, transform 160ms cubic-bezier(.25,.1,.25,1)",
+      transform: press ? "scale(0.97)" : "scale(1)" }}>{label}</button>);
+}
+function Metric({ name, value, target, unit, chips, onAdd, done }) {
+  const pct = Math.min(1, value/target);
+  return (<div>
+    <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11.5, fontWeight: 600, letterSpacing: "0.22em", textTransform: "uppercase", color: C.inkMute, marginBottom: 6 }}>{name}</div>
+    <div style={{ fontFamily: "'Fraunces', serif", fontSize: 42, fontWeight: 400, lineHeight: 1, marginBottom: 14 }}>
+      <span style={{ color: C.ink }}>{Math.round(value)}</span>
+      <span style={{ color: C.inkMute, fontSize: 26 }}> / {target} {unit}</span>
+    </div>
+    <ProgressLine pct={pct} />
+    <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+      {chips.map((c) => <Chip key={c} label={"+"+c} dim={done} onTap={() => onAdd(c)} />)}
+    </div>
+  </div>);
+}
+function Stepper({ value, step, unit, onChange }) {
+  const btn = { width: 40, height: 40, borderRadius: 12, border: "none", cursor: "pointer", background: "rgba(26,24,21,0.05)", color: C.ink, display: "grid", placeItems: "center" };
+  return (<div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+    <button style={btn} onClick={() => onChange(-step)}><IMinus size={16} /></button>
+    <div style={{ fontFamily: "'Fraunces', serif", fontSize: 22, minWidth: 78, textAlign: "center" }}>{value} {unit}</div>
+    <button style={btn} onClick={() => onChange(step)}><IPlus size={16} /></button>
+  </div>);
+}
+
+/* ---- persistence helpers ----------------------------------------- */
+function todayStr() { const d = new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+function loadState() { try { return JSON.parse(localStorage.getItem("hewn-v1") || "null"); } catch (e) { return null; } }
+
+/* ---- app ---------------------------------------------------------- */
+function Hewn() {
+  const init = loadState();
+  const sameDay = init && init.date === todayStr();
+  const [pTarget, setPTarget] = useState(init && init.pTarget ? init.pTarget : 100);
+  const [mTarget, setMTarget] = useState(init && init.mTarget ? init.mTarget : 30);
+  const [pTo, setPTo] = useState(sameDay ? (init.p || 0) : 0);
+  const [mTo, setMTo] = useState(sameDay ? (init.m || 0) : 0);
+  const [p, setP] = useState(sameDay ? (init.p || 0) : 0);
+  const [m, setM] = useState(sameDay ? (init.m || 0) : 0);
+  const [toast, setToast] = useState(null);
+  const [settings, setSettings] = useState(false);
+  const [phone, setPhone] = useState(typeof window !== "undefined" && window.innerWidth <= 480);
+  const undo = useRef([]); const toastT = useRef(null); const raf = useRef(null);
+
+  useEffect(() => {
+    const tick = () => {
+      setP((v) => (Math.abs(pTo - v) < 0.25 ? pTo : lerp(v, pTo, 0.14)));
+      setM((v) => (Math.abs(mTo - v) < 0.05 ? mTo : lerp(v, mTo, 0.14)));
+      raf.current = requestAnimationFrame(tick);
+    };
+    raf.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf.current);
+  }, [pTo, mTo]);
+
+  // load editorial fonts
+  useEffect(() => {
+    const l = document.createElement("link"); l.rel = "stylesheet";
+    l.href = "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Hanken+Grotesk:wght@500;600&display=swap";
+    document.head.appendChild(l);
+  }, []);
+
+  // persist
+  useEffect(() => {
+    localStorage.setItem("hewn-v1", JSON.stringify({ date: todayStr(), p: pTo, m: mTo, pTarget, mTarget }));
+  }, [pTo, mTo, pTarget, mTarget]);
+
+  // roll over to a fresh stone when the app returns on a new day
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === "visible") {
+        const d = loadState();
+        if (d && d.date !== todayStr()) { setPTo(0); setMTo(0); setP(0); setM(0); }
+      }
+    };
+    document.addEventListener("visibilitychange", onVis);
+    const onResize = () => setPhone(window.innerWidth <= 480);
+    window.addEventListener("resize", onResize);
+    return () => { document.removeEventListener("visibilitychange", onVis); window.removeEventListener("resize", onResize); };
+  }, []);
+
+  const flash = useCallback((msg, withUndo) => {
+    setToast({ msg, withUndo });
+    clearTimeout(toastT.current);
+    toastT.current = setTimeout(() => setToast(null), 1700);
+  }, []);
+
+  const addP = (g) => {
+    const next = Math.min(pTarget, pTo + g);
+    if (next === pTo) { flash("Enough for now", false); return; }
+    undo.current.push(["p", pTo]); setPTo(next); navigator.vibrate?.(8); flash("Logged", true);
+  };
+  const addM = (min) => {
+    const next = Math.min(mTarget, mTo + min);
+    if (next === mTo) { flash("Enough for now", false); return; }
+    undo.current.push(["m", mTo]); setMTo(next); navigator.vibrate?.(8); flash("Logged", true);
+  };
+  const doUndo = () => {
+    const last = undo.current.pop(); if (!last) return;
+    if (last[0] === "p") setPTo(last[1]); else setMTo(last[1]); setToast(null);
+  };
+  const newDay = () => { setPTo(0); setMTo(0); undo.current = []; setToast(null); };
+
+  const pDone = pTo >= pTarget - 0.5;
+  const mDone = mTo >= mTarget - 0.5;
+  const complete = pDone && mDone;
+  const headline = complete ? "Enough for now" : "Today is still open";
+  const sub = complete ? "Saved to your collection" : null;
+
+  const wrap = phone
+    ? { minHeight: "100dvh", width: "100%", background: C.base, fontFamily: "'Hanken Grotesk', sans-serif" }
+    : { minHeight: "100vh", width: "100%", background: "#2A2722", display: "grid", placeItems: "center", padding: "28px 0", fontFamily: "'Hanken Grotesk', sans-serif" };
+  const frame = phone
+    ? { position: "relative", width: "100%", minHeight: "100dvh", background: C.base, color: C.ink, display: "flex", flexDirection: "column",
+        padding: "calc(env(safe-area-inset-top) + 18px) 24px calc(env(safe-area-inset-bottom) + 20px)", boxSizing: "border-box", overflow: "hidden" }
+    : { position: "relative", width: 375, height: 760, background: C.base, color: C.ink, borderRadius: 44, overflow: "hidden",
+        boxShadow: "0 40px 90px rgba(0,0,0,0.45)", display: "flex", flexDirection: "column", padding: "22px 26px 26px", boxSizing: "border-box" };
+
+  return (
+    <div style={wrap}>
+      <div style={frame}>
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.05, mixBlendMode: "multiply", zIndex: 2,
+          backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
+
+        <button onClick={() => setSettings(true)} style={{ position: "absolute", top: phone ? "calc(env(safe-area-inset-top) + 14px)" : 22, right: 24, border: "none", background: "none", color: C.inkMute, cursor: "pointer", padding: 4, zIndex: 3 }}>
+          <ISettings size={18} />
+        </button>
+
+        <div style={{ marginTop: 14 }}>
+          <Metric name="Protein" value={p} target={pTarget} unit="g" chips={[10,20,30]} onAdd={addP} done={pDone} />
+        </div>
+
+        <div style={{ flex: 1, margin: "2px 0", minHeight: 0 }}>
+          <StoneCanvas polish={Math.min(1, pTo/pTarget)} definition={Math.min(1, mTo/mTarget)} complete={complete} />
+        </div>
+
+        <div style={{ textAlign: "center", marginBottom: 16, minHeight: 34 }}>
+          <div style={{ fontFamily: "'Fraunces', serif", fontSize: 17, color: complete ? C.accent : C.inkMute, transition: "color 600ms" }}>{headline}</div>
+          {sub && <div style={{ fontSize: 12, color: C.inkMute, marginTop: 3, animation: "hewnFade 700ms ease" }}>{sub}</div>}
+        </div>
+
+        <Metric name="Movement" value={m} target={mTarget} unit="min" chips={[5,10,15]} onAdd={addM} done={mDone} />
+
+        <button onClick={newDay} style={{ marginTop: 16, alignSelf: "center", border: "none", background: "none", cursor: "pointer", color: C.inkMute, fontSize: 12, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 6 }}>
+          <IReset size={12} /> New day
+        </button>
+
+        {toast && (
+          <div style={{ position: "absolute", left: "50%", bottom: 96, transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 14, padding: "10px 18px", background: "rgba(26,24,21,0.9)", color: C.base, borderRadius: 100, zIndex: 4, fontSize: 13.5, animation: "hewnFade 240ms ease", backdropFilter: "blur(6px)" }}>
+            <span>{toast.msg}</span>
+            {toast.withUndo && <button onClick={doUndo} style={{ border: "none", background: "none", color: C.accent, cursor: "pointer", fontSize: 13.5, fontWeight: 600, padding: 0 }}>Undo</button>}
+          </div>
+        )}
+
+        {settings && (<>
+          <div onClick={() => setSettings(false)} style={{ position: "absolute", inset: 0, background: "rgba(26,24,21,0.25)", zIndex: 5 }} />
+          <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 6, background: C.base, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: "26px 26px calc(env(safe-area-inset-bottom) + 34px)", boxShadow: "0 -20px 50px rgba(0,0,0,0.2)", animation: "hewnFade 260ms ease" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 26 }}>
+              <span style={{ fontFamily: "'Fraunces', serif", fontSize: 22 }}>Targets</span>
+              <button onClick={() => setSettings(false)} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute }}><IX size={18} /></button>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
+              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: C.inkMute }}>Protein</span>
+              <Stepper value={pTarget} step={5} unit="g" onChange={(d) => setPTarget((v) => Math.max(20, v + d))} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: C.inkMute }}>Movement</span>
+              <Stepper value={mTarget} step={5} unit="min" onChange={(d) => setMTarget((v) => Math.max(5, v + d))} />
+            </div>
+            <div style={{ marginTop: 28, fontSize: 12.5, color: C.inkMute, lineHeight: 1.5 }}>A gentle reminder, off by default. These are set — change them anytime.</div>
+          </div>
+        </>)}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<Hewn />);
+</script>
+</body>
+</html>

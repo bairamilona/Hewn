@@ -15,7 +15,10 @@
   @keyframes hewnFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes hewnFadeSlow { from { opacity: 0; } to { opacity: 1; } }
   @keyframes hewnRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes hewnLog { 0% { transform: scale(1.12); } 55% { transform: scale(0.96); } 100% { transform: scale(1); } }
   button:focus { outline: none; }
+  button { transition: filter 80ms ease, transform 80ms ease; -webkit-tap-highlight-color: transparent; }
+  button:not([disabled]):active { filter: brightness(0.78); transform: scale(0.95); }
 </style>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -465,14 +468,15 @@ function Chip({ name, amount, unit, block, onTap, dim }) {
     </span>
   </button>);
 }
-function Metric({ name, value, target, unit, presets, onAdd, done, onMore, block }) {
+function Metric({ name, value, target, unit, presets, onAdd, done, onMore, block, logCount }) {
   const C = React.useContext(ThemeCtx);
   const pct = Math.min(1, value/target);
   const shortcuts = block ? FAV_PROTEIN.map((nm) => presets.find((x) => x.n === nm)).filter(Boolean) : presets.slice(0, 3);
   return (<div>
     <div style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: "0.22em", textTransform: "uppercase", color: C.inkMute, marginBottom: 4 }}>{name}</div>
-    <div style={{ fontFamily: "'Fraunces', serif", fontSize: 38, fontWeight: 400, lineHeight: 1, marginBottom: 10 }}>
-      <span style={{ color: C.ink }}>{Math.round(value)}</span>
+    <div key={logCount} style={{ fontFamily: "'Fraunces', serif", fontSize: 38, fontWeight: 400, lineHeight: 1, marginBottom: 10,
+      animation: logCount > 0 ? "hewnLog 380ms cubic-bezier(.25,.1,.25,1)" : "none", display: "inline-block" }}>
+      <span style={{ color: logCount > 0 ? C.accent : C.ink, transition: "color 380ms ease" }}>{Math.round(value)}</span>
       <span style={{ color: C.inkMute, fontSize: 23 }}> / {target} {unit}</span>
     </div>
     <ProgressLine pct={pct} />
@@ -486,7 +490,7 @@ function Metric({ name, value, target, unit, presets, onAdd, done, onMore, block
       {shortcuts.map((it) => (
         <button key={it.n} onClick={() => onAdd(it.v, it.n)} disabled={done}
           style={{ flex: 1, minWidth: 0, height: 34, borderRadius: 10, border: "none", cursor: done ? "default" : "pointer",
-            background: C.inkFaint, color: C.inkMute, opacity: done ? 0.5 : 1,
+            background: C.inkFaint, color: done ? C.inkMute : C.ink, opacity: done ? 0.5 : 1,
             fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 3,
             whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", padding: "0 5px" }}>
           {block && <Block />}{it.n.split(" (")[0]}
@@ -515,7 +519,7 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks }) {
         {headerRow(titleEl(title), closeBtn)}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           {presets.map((it) => (
-            <button key={it.n} onClick={() => onPick(it.v, it.n)}
+            <button key={it.n} onClick={() => { onPick(it.v, it.n); onClose(); }}
               style={{ height: 62, border: "none", borderRadius: 16, cursor: "pointer", background: "rgba(26,24,21,0.045)", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2 }}>
               <span style={{ fontSize: 15, fontWeight: 500 }}>{it.n}</span>
               <span style={{ fontSize: 11, color: C.inkMute }}>+{it.v} {unit}</span>
@@ -570,7 +574,7 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks }) {
         {fmtCount(count)} {egg ? plural(food.u === "egg" ? "egg" : "piece", count) : plural(food.u, count)} of {foodName}
       </div>
 
-      <button onClick={() => onPick(grams, food.n.split(" (")[0])}
+      <button onClick={() => { onPick(grams, food.n.split(" (")[0]); onClose(); }}
         style={{ width: "100%", height: 56, borderRadius: 16, border: "none", cursor: "pointer", background: C.accent, color: C.base,
           fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 16, fontWeight: 600 }}>
         Add
@@ -787,6 +791,8 @@ function Hewn() {
   const [shelf, setShelf] = useState(init && init.shelf ? init.shelf : []);
   const [appearance, setAppearance] = useState(init && init.appearance ? init.appearance : "light");
   const [phone, setPhone] = useState(typeof window !== "undefined" && window.innerWidth <= 480);
+  const [pLogCount, setPLogCount] = useState(0);
+  const [mLogCount, setMLogCount] = useState(0);
   const undo = useRef([]); const toastT = useRef(null); const raf = useRef(null);
   const prevComplete = useRef(false);
 
@@ -857,12 +863,14 @@ function Hewn() {
     const next = Math.min(pTarget, pTo + g);
     if (next === pTo) { flash("Enough for now", false); return; }
     undo.current.push(["p", pTo]); setPTo(next); navigator.vibrate?.(8);
+    setPLogCount(c => c + 1);
     flash(label ? label + " · +" + Math.round(g) + " g" : "Logged", true);
   };
   const addM = (min, label) => {
     const next = Math.min(mTarget, mTo + min);
     if (next === mTo) { flash("Enough for now", false); return; }
     undo.current.push(["m", mTo]); setMTo(next); navigator.vibrate?.(8);
+    setMLogCount(c => c + 1);
     flash(label ? label + " · +" + Math.round(min) + " min" : "Logged", true);
   };
   const doUndo = () => {
@@ -901,7 +909,7 @@ function Hewn() {
         </button>
 
         <div style={{ marginTop: 14 }}>
-          <Metric name="Protein" value={p} target={pTarget} unit="g" presets={PROTEIN} onAdd={addP} done={pDone} onMore={() => setSheet("protein")} block />
+          <Metric name="Protein" value={p} target={pTarget} unit="g" presets={PROTEIN} onAdd={addP} done={pDone} onMore={() => setSheet("protein")} block logCount={pLogCount} />
         </div>
 
         <div style={{ flex: 1, minHeight: 0 }}>
@@ -913,7 +921,7 @@ function Hewn() {
           {sub && <div style={{ fontSize: 12, color: activeC.inkMute, marginTop: 3, animation: "hewnFade 700ms ease" }}>{sub}</div>}
         </div>
 
-        <Metric name="Movement" value={m} target={mTarget} unit="min" presets={MOVEMENT} onAdd={addM} done={mDone} onMore={() => setSheet("movement")} />
+        <Metric name="Movement" value={m} target={mTarget} unit="min" presets={MOVEMENT} onAdd={addM} done={mDone} onMore={() => setSheet("movement")} logCount={mLogCount} />
 
         <div style={{ marginTop: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 22 }}>
           <button onClick={newDay} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute, fontSize: 12, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5 }}>

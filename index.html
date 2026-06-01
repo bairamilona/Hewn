@@ -725,6 +725,24 @@ function Hewn() {
   const mDone = mTo >= mTarget - 0.5;
   const complete = pDone && mDone;
 
+  const streak = React.useMemo(() => {
+    const done = new Set(
+      (shelf || [])
+        .filter(e => e.p >= (e.pTarget || 100) - 0.5 && e.m >= (e.mTarget || 30) - 0.5)
+        .map(e => e.date)
+    );
+    if (complete) done.add(todayStr());
+    let n = 0;
+    const d = new Date();
+    while (true) {
+      const ds = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+      if (!done.has(ds)) break;
+      n++;
+      d.setDate(d.getDate() - 1);
+    }
+    return n;
+  }, [shelf, complete]);
+
   useEffect(() => {
     const tick = () => {
       setP((v) => (Math.abs(pTo - v) < 0.25 ? pTo : lerp(v, pTo, 0.14)));
@@ -825,7 +843,9 @@ function Hewn() {
   };
 
   const headline = complete ? "Enough for now" : "Today is still open";
-  const sub = complete ? "Saved to your collection" : null;
+  const sub = complete
+    ? (streak >= 2 ? `${streak} days in a row` : "Saved to your collection")
+    : (streak >= 2 ? `${streak} day streak` : null);
 
   const wrap = phone
     ? { height: "100dvh", width: "100%", background: activeC.base, fontFamily: "'Hanken Grotesk', sans-serif", overflow: "hidden" }
@@ -877,6 +897,11 @@ function Hewn() {
           <button onClick={() => setShelfOpen(true)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute, fontSize: 12, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5 }}>
             <IChevUp size={12} /> Shelf
           </button>
+          {streak >= 2 && (
+            <span style={{ color: streak >= 7 ? activeC.ink : activeC.inkMute, fontSize: 12, letterSpacing: "0.04em", fontVariantNumeric: "tabular-nums" }}>
+              {"—".repeat(Math.min(streak, 5))} {streak}d
+            </span>
+          )}
           <button onClick={() => {
             const url = `scriptable:///run/HewnSync?p=${Math.round(pTo)}&pt=${pTarget}&m=${Math.round(mTo)}&mt=${mTarget}&date=${todayStr()}`;
             window.location.href = url;

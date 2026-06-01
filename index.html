@@ -792,6 +792,10 @@ function Hewn() {
 
   const activeC = appearance === "dark" || (appearance === "system" && typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches) ? DARK : LIGHT;
 
+  const pDone = pTo >= pTarget - 0.5;
+  const mDone = mTo >= mTarget - 0.5;
+  const complete = pDone && mDone;
+
   useEffect(() => {
     const tick = () => {
       setP((v) => (Math.abs(pTo - v) < 0.25 ? pTo : lerp(v, pTo, 0.14)));
@@ -873,9 +877,6 @@ function Hewn() {
     setPTo(0); setMTo(0); undo.current = []; setToast(null);
   };
 
-  const pDone = pTo >= pTarget - 0.5;
-  const mDone = mTo >= mTarget - 0.5;
-  const complete = pDone && mDone;
   const headline = complete ? "Enough for now" : "Today is still open";
   const sub = complete ? "Saved to your collection" : null;
 

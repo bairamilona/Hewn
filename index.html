@@ -528,7 +528,7 @@ function Metric({ name, value, target, unit, presets, onAdd, done, onMore, onLog
         </div>
       </div>
       {/* Shortcut pills */}
-      <div style={{ display: "flex", gap: 6, marginTop: 9, flexWrap: "nowrap", overflow: "hidden" }}>
+      <div style={{ display: "flex", gap: 6, marginTop: 9, flexWrap: "wrap" }}>
         {shortcuts.map(it => (
           <button key={it.n} onClick={() => onAdd(it.v, it.n)} disabled={done}
             style={{ flex: "0 0 auto", padding: "4px 11px", borderRadius: 100,
@@ -909,8 +909,16 @@ function Hewn() {
   const [shelf, setShelf] = useState(init && init.shelf ? init.shelf : []);
   const [appearance, setAppearance] = useState(init && init.appearance ? init.appearance : "light");
   const [phone, setPhone] = useState(typeof window !== "undefined" && window.innerWidth <= 480);
-  const [pLog, setPLog] = useState(sameDay && init.pLog ? init.pLog : []);
-  const [mLog, setMLog] = useState(sameDay && init.mLog ? init.mLog : []);
+  const [pLog, setPLog] = useState(() => {
+    if (sameDay && init.pLog && init.pLog.length > 0) return init.pLog;
+    if (sameDay && init.p > 0) return [{ id: 1, name: "Earlier today", amount: init.p }];
+    return [];
+  });
+  const [mLog, setMLog] = useState(() => {
+    if (sameDay && init.mLog && init.mLog.length > 0) return init.mLog;
+    if (sameDay && init.m > 0) return [{ id: 2, name: "Earlier today", amount: init.m }];
+    return [];
+  });
   const [logSheet, setLogSheet] = useState(null);
   const [pLogCount, setPLogCount] = useState(0);
   const [mLogCount, setMLogCount] = useState(0);

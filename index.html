@@ -484,7 +484,7 @@ function Chip({ name, amount, unit, block, onTap, dim }) {
     </span>
   </button>);
 }
-function Metric({ name, value, target, unit, presets, onAdd, done, onMore, block, logCount }) {
+function Metric({ name, value, target, unit, presets, onAdd, done, onMore, onLogOpen, block, logCount }) {
   const C = React.useContext(ThemeCtx);
   const pct = Math.min(1, value / target);
   const R = 27, sz = (R + 4) * 2;
@@ -495,8 +495,8 @@ function Metric({ name, value, target, unit, presets, onAdd, done, onMore, block
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-        {/* Ring progress */}
-        <div style={{ position: "relative", width: sz, height: sz, flexShrink: 0 }}>
+        {/* Ring progress — tappable to open log */}
+        <div onClick={onLogOpen} style={{ position: "relative", width: sz, height: sz, flexShrink: 0, cursor: "pointer" }}>
           <svg width={sz} height={sz} viewBox={`0 0 ${sz} ${sz}`} style={{ position: "absolute", top: 0, left: 0, overflow: "visible" }}>
             <circle cx={sz/2} cy={sz/2} r={R} fill="none" stroke={C.ink} strokeWidth="0.3" strokeOpacity="0.12" />
             <circle cx={sz/2} cy={sz/2} r={R} fill="none" stroke={C.ink} strokeWidth="0.3"
@@ -835,6 +835,57 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, onClose 
   );
 }
 
+/* ---- today's log sheet ------------------------------------------- */
+function LogSheet({ title, unit, entries, onAdd, onRemove, onClose, done }) {
+  const C = React.useContext(ThemeCtx);
+  const sheetWrap = { position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 6,
+    background: C.base, borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    padding: "24px 24px calc(env(safe-area-inset-bottom) + 28px)",
+    boxShadow: "0 -20px 50px rgba(0,0,0,0.18)", animation: "hewnFade 260ms ease",
+    maxHeight: "78%", overflowY: "auto" };
+  return (<>
+    <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.18)", zIndex: 5 }} />
+    <div style={sheetWrap}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <span style={{ fontFamily: "'Fraunces', serif", fontSize: 21, color: C.ink }}>{title}</span>
+        <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute }}><IX size={18} /></button>
+      </div>
+      {entries.length === 0 ? (
+        <div style={{ color: C.inkMute, fontSize: 13.5, textAlign: "center", padding: "28px 0", fontFamily: "'Hanken Grotesk', sans-serif" }}>
+          Nothing logged yet
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {entries.map((e, i) => (
+            <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 10,
+              padding: "11px 14px", borderRadius: 100,
+              border: `0.3px solid ${C.inkMute}`,
+              animation: `hewnFade 220ms ease ${i * 30}ms both` }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14, color: C.ink,
+                  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" }}>{e.name}</span>
+              </div>
+              <span style={{ fontFamily: "'Fraunces', serif", fontSize: 14, color: C.inkMute, flexShrink: 0 }}>+{e.amount} {unit}</span>
+              <button onClick={() => onAdd(e.amount, e.name)} disabled={done} title="Add again"
+                style={{ width: 30, height: 30, borderRadius: "50%", border: `0.3px solid ${done ? C.inkFaint : C.inkMute}`,
+                  background: "transparent", color: done ? C.inkMute : C.ink, cursor: done ? "default" : "pointer",
+                  display: "grid", placeItems: "center", flexShrink: 0, opacity: done ? 0.4 : 1 }}>
+                <IPlus size={13} />
+              </button>
+              <button onClick={() => onRemove(e.id)} title="Remove"
+                style={{ width: 30, height: 30, borderRadius: "50%", border: `0.3px solid ${C.inkMute}`,
+                  background: "transparent", color: C.ink, cursor: "pointer",
+                  display: "grid", placeItems: "center", flexShrink: 0 }}>
+                <IX size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </>);
+}
+
 /* ---- persistence helpers ----------------------------------------- */
 function loadState() { try { return JSON.parse(localStorage.getItem("hewn-v1") || "null"); } catch (e) { return null; } }
 
@@ -858,6 +909,9 @@ function Hewn() {
   const [shelf, setShelf] = useState(init && init.shelf ? init.shelf : []);
   const [appearance, setAppearance] = useState(init && init.appearance ? init.appearance : "light");
   const [phone, setPhone] = useState(typeof window !== "undefined" && window.innerWidth <= 480);
+  const [pLog, setPLog] = useState(sameDay && init.pLog ? init.pLog : []);
+  const [mLog, setMLog] = useState(sameDay && init.mLog ? init.mLog : []);
+  const [logSheet, setLogSheet] = useState(null);
   const [pLogCount, setPLogCount] = useState(0);
   const [mLogCount, setMLogCount] = useState(0);
   const undo = useRef([]); const toastT = useRef(null); const raf = useRef(null);
@@ -888,8 +942,8 @@ function Hewn() {
 
   // persist
   useEffect(() => {
-    localStorage.setItem("hewn-v1", JSON.stringify({ date: todayStr(), p: pTo, m: mTo, pTarget, mTarget, profile, shelf, appearance }));
-  }, [pTo, mTo, pTarget, mTarget, profile, shelf, appearance]);
+    localStorage.setItem("hewn-v1", JSON.stringify({ date: todayStr(), p: pTo, m: mTo, pTarget, mTarget, profile, shelf, appearance, pLog, mLog }));
+  }, [pTo, mTo, pTarget, mTarget, profile, shelf, appearance, pLog, mLog]);
 
   // archive today when day completes
   useEffect(() => {
@@ -910,7 +964,7 @@ function Hewn() {
             setShelf(prev => [...prev.filter(e => e.date !== d.date),
               { date: d.date, p: d.p || 0, m: d.m || 0, pTarget: d.pTarget || 100, mTarget: d.mTarget || 30 }]);
           }
-          setPTo(0); setMTo(0); setP(0); setM(0);
+          setPTo(0); setMTo(0); setP(0); setM(0); setPLog([]); setMLog([]);
         }
       }
     };
@@ -929,27 +983,43 @@ function Hewn() {
   const addP = (g, label) => {
     const next = Math.min(pTarget, pTo + g);
     if (next === pTo) { flash("Enough for now", false); return; }
-    undo.current.push(["p", pTo]); setPTo(next); navigator.vibrate?.(8);
+    const added = next - pTo;
+    const entry = { id: Date.now() + Math.random(), name: label || "Custom", amount: Math.round(added) };
+    undo.current.push(["p", pTo, entry.id]);
+    setPTo(next); setPLog(prev => [...prev, entry]); navigator.vibrate?.(8);
     setPLogCount(c => c + 1);
-    flash(label ? label + " · +" + Math.round(g) + " g" : "Logged", true);
+    flash((label || "Logged") + " · +" + Math.round(added) + " g", true);
   };
   const addM = (min, label) => {
     const next = Math.min(mTarget, mTo + min);
     if (next === mTo) { flash("Enough for now", false); return; }
-    undo.current.push(["m", mTo]); setMTo(next); navigator.vibrate?.(8);
+    const added = next - mTo;
+    const entry = { id: Date.now() + Math.random(), name: label || "Custom", amount: Math.round(added) };
+    undo.current.push(["m", mTo, entry.id]);
+    setMTo(next); setMLog(prev => [...prev, entry]); navigator.vibrate?.(8);
     setMLogCount(c => c + 1);
-    flash(label ? label + " · +" + Math.round(min) + " min" : "Logged", true);
+    flash((label || "Logged") + " · +" + Math.round(added) + " min", true);
+  };
+  const removeP = (id) => {
+    const e = pLog.find(x => x.id === id); if (!e) return;
+    setPTo(v => Math.max(0, v - e.amount)); setPLog(prev => prev.filter(x => x.id !== id));
+  };
+  const removeM = (id) => {
+    const e = mLog.find(x => x.id === id); if (!e) return;
+    setMTo(v => Math.max(0, v - e.amount)); setMLog(prev => prev.filter(x => x.id !== id));
   };
   const doUndo = () => {
     const last = undo.current.pop(); if (!last) return;
-    if (last[0] === "p") setPTo(last[1]); else setMTo(last[1]); setToast(null);
+    if (last[0] === "p") { setPTo(last[1]); setPLog(prev => prev.filter(x => x.id !== last[2])); }
+    else { setMTo(last[1]); setMLog(prev => prev.filter(x => x.id !== last[2])); }
+    setToast(null);
   };
   const newDay = () => {
     if (pTo > 0 || mTo > 0) {
       const today = todayStr();
       setShelf(prev => [...prev.filter(e => e.date !== today), { date: today, p: pTo, m: mTo, pTarget, mTarget }]);
     }
-    setPTo(0); setMTo(0); undo.current = []; setToast(null);
+    setPTo(0); setMTo(0); setPLog([]); setMLog([]); undo.current = []; setToast(null);
   };
 
   const headline = complete ? "Enough for now" : "Today is still open";
@@ -984,7 +1054,7 @@ function Hewn() {
         </button>
 
         <div style={{ marginTop: 14 }}>
-          <Metric name="Protein" value={p} target={pTarget} unit="g" presets={PROTEIN} onAdd={addP} done={pDone} onMore={() => setSheet("protein")} block logCount={pLogCount} />
+          <Metric name="Protein" value={p} target={pTarget} unit="g" presets={PROTEIN} onAdd={addP} done={pDone} onMore={() => setSheet("protein")} onLogOpen={() => setLogSheet("protein")} block logCount={pLogCount} />
         </div>
 
         <div style={{ flex: 1, minHeight: 0 }}>
@@ -996,7 +1066,7 @@ function Hewn() {
           {sub && <div style={{ fontSize: 12, color: activeC.inkMute, marginTop: 3, animation: "hewnFade 700ms ease" }}>{sub}</div>}
         </div>
 
-        <Metric name="Movement" value={m} target={mTarget} unit="min" presets={MOVEMENT} onAdd={addM} done={mDone} onMore={() => setSheet("movement")} logCount={mLogCount} />
+        <Metric name="Movement" value={m} target={mTarget} unit="min" presets={MOVEMENT} onAdd={addM} done={mDone} onMore={() => setSheet("movement")} onLogOpen={() => setLogSheet("movement")} logCount={mLogCount} />
 
         <div style={{ marginTop: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 22 }}>
           <button onClick={newDay} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute, fontSize: 12, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5 }}>
@@ -1009,6 +1079,8 @@ function Hewn() {
 
         {sheet === "protein" && <MoreSheet title="Add protein" unit="g" presets={PROTEIN} onPick={(v, n) => addP(v, n)} onClose={() => setSheet(null)} blocks />}
         {sheet === "movement" && <MoreSheet title="Add movement" unit="min" presets={MOVEMENT} onPick={(v, n) => addM(v, n)} onClose={() => setSheet(null)} />}
+        {logSheet === "protein" && <LogSheet title="Protein today" unit="g" entries={pLog} onAdd={addP} onRemove={removeP} onClose={() => setLogSheet(null)} done={pDone} />}
+        {logSheet === "movement" && <LogSheet title="Movement today" unit="min" entries={mLog} onAdd={addM} onRemove={removeM} onClose={() => setLogSheet(null)} done={mDone} />}
         {shelfOpen && <ShelfView shelf={shelf} todayP={pTo} todayM={mTo} todayPTarget={pTarget} todayMTarget={mTarget} onClose={() => setShelfOpen(false)} />}
 
         {onboard && <Quiz initial={profile || {}} onDone={(prof, t) => { setProfile(prof); setPTarget(t); setOnboard(false); }} />}

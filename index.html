@@ -66,13 +66,69 @@ const IChevUp = (p) => <Ico {...p}><polyline points="18 15 12 9 6 15" /></Ico>;
 
 /* ---- emoji visualisation ------------------------------------------ */
 function EmojiVis({ pPct, mPct }) {
+  const canvasRef = useRef(null);
+  const C = React.useContext(ThemeCtx);
+
   const avg = (pPct + mPct) / 2;
   const idx = Math.min(5, Math.floor(avg * 6));
   const src = `assets/emojis/state${idx + 1}.png`;
+
+  const COLS = 42, ROWS = 42, CELL = 5;
+  // Bayer 4×4 ordered dithering matrix
+  const BAYER = [[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.width = COLS * CELL;
+    canvas.height = ROWS * CELL;
+    const ctx = canvas.getContext("2d");
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      // downsample to grid
+      const sc = document.createElement("canvas");
+      sc.width = COLS; sc.height = ROWS;
+      const s = sc.getContext("2d");
+      s.drawImage(img, 0, 0, COLS, ROWS);
+      const px = s.getImageData(0, 0, COLS, ROWS).data;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = C.ink;
+      ctx.font = `bold ${CELL * 1.25}px monospace`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      for (let y = 0; y < ROWS; y++) {
+        for (let x = 0; x < COLS; x++) {
+          const i = (y * COLS + x) * 4;
+          const r = px[i], g = px[i+1], b = px[i+2], a = px[i+3];
+          if (a < 25) continue;
+
+          const lum = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+          if (lum > 0.91) continue; // background gray
+
+          // ordered dithering: shift brightness by Bayer threshold
+          const t = (BAYER[y % 4][x % 4] + 0.5) / 16;
+          const d = lum + (t - 0.5) * 0.35;
+
+          const char = d < 0.42 ? "+" : d < 0.76 ? "○" : null;
+          if (!char) continue;
+
+          ctx.globalAlpha = Math.min(1, (a / 255) * (1 - lum * 0.3));
+          ctx.fillText(char, x * CELL + CELL / 2, y * CELL + CELL / 2);
+        }
+      }
+      ctx.globalAlpha = 1;
+    };
+    img.src = src;
+  }, [src, C.ink]);
+
   return (
     <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <img key={idx} src={src} alt="" draggable={false}
-        style={{ width: 170, height: 170, objectFit: "contain", animation: "hewnEmoji 420ms cubic-bezier(0.34,1.56,0.64,1)" }} />
+      <canvas ref={canvasRef} width={COLS * CELL} height={ROWS * CELL}
+        style={{ display: "block", maxWidth: "90%", maxHeight: "90%" }} />
     </div>
   );
 }

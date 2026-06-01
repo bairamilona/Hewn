@@ -27,11 +27,18 @@
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef, useCallback } = React;
 
-const C = {
+const LIGHT = {
   base: "#F4F1EA", ink: "#1A1815",
   inkMute: "rgba(26,24,21,0.40)", inkFaint: "rgba(26,24,21,0.10)",
-  accent: "#BE7A4E", accentSoft: "rgba(190,122,78,0.16)",
+  accent: "#BE7A4E", accentSoft: "rgba(190,122,78,0.16)", outer: "#2A2722",
 };
+const DARK = {
+  base: "#15140F", ink: "#ECE7DC",
+  inkMute: "rgba(236,231,220,0.38)", inkFaint: "rgba(236,231,220,0.07)",
+  accent: "#BE7A4E", accentSoft: "rgba(190,122,78,0.18)", outer: "#080705",
+};
+const C = LIGHT; // module-level default; components shadow via ThemeCtx
+const ThemeCtx = React.createContext(LIGHT);
 const lerp = (a, b, t) => a + (b - a) * t;
 const easeIO = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
@@ -45,6 +52,7 @@ const IReset = (p) => <Ico {...p}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6
 const IMinus = (p) => <Ico {...p}><path d="M5 12h14"/></Ico>;
 const IPlus = (p) => <Ico {...p}><path d="M12 5v14"/><path d="M5 12h14"/></Ico>;
 const IX = (p) => <Ico {...p}><path d="M18 6 6 18"/><path d="M6 6l12 12"/></Ico>;
+const IChevUp = (p) => <Ico {...p}><polyline points="18 15 12 9 6 15" /></Ico>;
 
 /* ---- textures ----------------------------------------------------- */
 function radialTex(inner, outer) {
@@ -275,6 +283,7 @@ function StoneCanvas({ polish, definition, complete }) {
 
 /* ---- UI primitives ------------------------------------------------ */
 function ProgressLine({ pct }) {
+  const C = React.useContext(ThemeCtx);
   return (<div style={{ position: "relative", height: 1.5, background: C.inkFaint, borderRadius: 2 }}>
     <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: (pct*100)+"%", background: C.accent, borderRadius: 2, transition: "width 420ms cubic-bezier(.25,.1,.25,1)" }} />
   </div>);
@@ -361,7 +370,9 @@ const MOVEMENT = [
 ];
 
 /* small outlined block mark — the egg-size unit, kept minimal not childish */
-function Block({ size = 9, color = C.inkMute }) {
+function Block({ size = 9 }) {
+  const C = React.useContext(ThemeCtx);
+  const color = C.inkMute;
   return (<svg width={size} height={size} viewBox="0 0 10 10" style={{ marginRight: 4, verticalAlign: "middle" }}>
     <rect x="1" y="1" width="8" height="8" rx="1.6" fill="none" stroke={color} strokeWidth="1.1" />
   </svg>);
@@ -381,6 +392,7 @@ function proteinTarget({ weight, age, sex, goal }) {
 
 /* one little egg — full, half, or empty */
 function Egg({ fill = 1, size = 30, onClick }) {
+  const C = React.useContext(ThemeCtx);
   const id = "eg" + Math.round(Math.random() * 1e6);
   return (
     <svg width={size} height={size * 1.25} viewBox="0 0 24 30" onClick={onClick}
@@ -401,6 +413,7 @@ function Egg({ fill = 1, size = 30, onClick }) {
 /* a row of eggs you tap to set how many pieces: tap egg n -> n eggs; tap a filled egg's
    right edge again to half it. Simpler: tapping egg i sets count to i; a ½ control toggles a trailing half. */
 function EggRow({ count, onChange, max = 6 }) {
+  const C = React.useContext(ThemeCtx);
   const whole = Math.floor(count);
   const half = count - whole >= 0.5;
   const eggs = [];
@@ -425,6 +438,7 @@ function EggRow({ count, onChange, max = 6 }) {
 
 /* numeric picker for scoop/cup/glass/slice/handful/spoon/bar units */
 function NumPicker({ count, onChange, unit }) {
+  const C = React.useContext(ThemeCtx);
   const big = { width: 46, height: 46, borderRadius: 13, border: "none", cursor: "pointer", background: "rgba(26,24,21,0.06)", color: C.ink, display: "grid", placeItems: "center" };
   const small = { flex: 1, height: 38, borderRadius: 11, border: "none", cursor: "pointer", background: "rgba(26,24,21,0.05)", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 };
   return (
@@ -443,6 +457,7 @@ function NumPicker({ count, onChange, unit }) {
 }
 
 function Chip({ name, amount, unit, block, onTap, dim }) {
+  const C = React.useContext(ThemeCtx);
   const [press, setPress] = useState(false);
   return (<button onPointerDown={() => setPress(true)} onPointerUp={() => setPress(false)} onPointerLeave={() => setPress(false)} onClick={onTap} disabled={dim}
     style={{ flex: 1, minWidth: 0, height: 62, border: "none", borderRadius: 16, cursor: dim ? "default" : "pointer",
@@ -457,6 +472,7 @@ function Chip({ name, amount, unit, block, onTap, dim }) {
   </button>);
 }
 function Metric({ name, value, target, unit, presets, onAdd, done, onMore, block }) {
+  const C = React.useContext(ThemeCtx);
   const pct = Math.min(1, value/target);
   const shortcuts = block ? FAV_PROTEIN.map((nm) => presets.find((x) => x.n === nm)).filter(Boolean) : presets.slice(0, 3);
   return (<div>
@@ -486,6 +502,7 @@ function Metric({ name, value, target, unit, presets, onAdd, done, onMore, block
   </div>);
 }
 function MoreSheet({ title, unit, presets, onPick, onClose, blocks }) {
+  const C = React.useContext(ThemeCtx);
   const [food, setFood] = useState(null); // null = food-picker step
   const [count, setCount] = useState(1);
 
@@ -568,7 +585,8 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks }) {
   </>);
 }
 function Stepper({ value, step, unit, onChange }) {
-  const btn = { width: 40, height: 40, borderRadius: 12, border: "none", cursor: "pointer", background: "rgba(26,24,21,0.05)", color: C.ink, display: "grid", placeItems: "center" };
+  const C = React.useContext(ThemeCtx);
+  const btn = { width: 40, height: 40, borderRadius: 12, border: "none", cursor: "pointer", background: C.inkFaint, color: C.ink, display: "grid", placeItems: "center" };
   return (<div style={{ display: "flex", alignItems: "center", gap: 14 }}>
     <button style={btn} onClick={() => onChange(-step)}><IMinus size={16} /></button>
     <div style={{ fontFamily: "'Fraunces', serif", fontSize: 22, minWidth: 78, textAlign: "center" }}>{value} {unit}</div>
@@ -580,6 +598,7 @@ function Stepper({ value, step, unit, onChange }) {
 function todayStr() { const d = new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
 /* short quiz -> personal protein target. Used for onboarding and re-editable in settings. */
 function Quiz({ initial, onDone, onClose }) {
+  const C = React.useContext(ThemeCtx);
   const [sex, setSex] = useState(initial.sex || "female");
   const [age, setAge] = useState(initial.age || 30);
   const [weight, setWeight] = useState(initial.weight || 65);
@@ -638,6 +657,120 @@ function Quiz({ initial, onDone, onClose }) {
   );
 }
 
+/* ---- mini SVG stone for shelf thumbnails -------------------------- */
+function MiniStone({ polish, definition, uid }) {
+  const chalk = (1 - polish) * 0.75;
+  const spec = polish * 0.62;
+  const disp = (1 - (polish * 0.5 + definition * 0.5)) * 2.8;
+  const blur = (1 - definition) * 0.65 + 0.08;
+  const p = "ms" + uid;
+  return (
+    <svg viewBox="0 0 60 90" width="100%" height="100%" style={{ display: "block" }}>
+      <defs>
+        <radialGradient id={p+"g"} cx="38%" cy="28%" r="78%">
+          <stop offset="0%" stopColor="#F1ECE1" />
+          <stop offset="48%" stopColor="#CBC0A9" />
+          <stop offset="100%" stopColor="#8F8369" />
+        </radialGradient>
+        <filter id={p+"f"} x="-25%" y="-25%" width="150%" height="150%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="2" seed="7" result="n" />
+          <feDisplacementMap in="SourceGraphic" in2="n" scale={disp} xChannelSelector="R" yChannelSelector="G" result="d" />
+          <feGaussianBlur in="d" stdDeviation={blur} />
+        </filter>
+        <filter id={p+"s"}><feGaussianBlur stdDeviation="2" /></filter>
+      </defs>
+      <ellipse cx="30" cy="85" rx="13" ry="2.2" fill="#1A1815" filter={`url(#${p}s)`} opacity="0.15" />
+      <rect x="17" y="80" width="26" height="3" rx="1.2" fill="#a99c83" />
+      <g filter={`url(#${p}f)`}>
+        <path d="M30 10 C37 10 43 22 44 38 C45 52 41 65 34 73 C32 76 28 76 26 73 C19 65 15 52 16 38 C17 22 23 10 30 10 Z" fill={`url(#${p}g)`} />
+        <path d="M30 10 C37 10 43 22 44 38 C45 52 41 65 34 73 C32 76 28 76 26 73 C19 65 15 52 16 38 C17 22 23 10 30 10 Z" fill="#DED7C7" style={{ opacity: chalk }} />
+        <ellipse cx="24" cy="28" rx="5" ry="9" fill="#FFFDF6" style={{ opacity: spec }} transform="rotate(-18 24 28)" filter={`url(#${p}s)`} />
+      </g>
+    </svg>
+  );
+}
+
+/* ---- shelf view --------------------------------------------------- */
+function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, onClose }) {
+  const C = React.useContext(ThemeCtx);
+  const [selected, setSelected] = useState(null);
+
+  const days = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const ds = d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate();
+    const isToday = i === 0;
+    const entry = isToday
+      ? { date: ds, p: todayP, m: todayM, pTarget: todayPTarget, mTarget: todayMTarget }
+      : (shelf || []).find(e => e.date === ds);
+    const dow = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()];
+    days.push({ ds, entry, isToday, dow, d });
+  }
+
+  const sel = selected ? days.find(x => x.ds === selected) : null;
+
+  return (
+    <div style={{ position: "absolute", inset: 0, zIndex: 7, background: C.base, display: "flex", flexDirection: "column", animation: "hewnFade 380ms ease" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "26px 26px 0" }}>
+        <span style={{ fontFamily: "'Fraunces', serif", fontSize: 22, color: C.ink }}>Your shelf</span>
+        <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute }}><IX size={18} /></button>
+      </div>
+      <div style={{ overflowX: "auto", overflowY: "hidden", padding: "28px 22px 16px", scrollbarWidth: "none" }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "flex-end", minWidth: "max-content" }}>
+          {days.map(({ ds, entry, isToday, dow }) => {
+            const polish = entry ? Math.min(1, entry.p / (entry.pTarget || 100)) : 0;
+            const definition = entry ? Math.min(1, entry.m / (entry.mTarget || 30)) : 0;
+            const hasAny = entry && (entry.p > 0 || entry.m > 0);
+            const isSel = selected === ds;
+            return (
+              <button key={ds} onClick={() => setSelected(isSel ? null : ds)}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: "0 2px",
+                  display: "flex", flexDirection: "column", alignItems: "center",
+                  opacity: hasAny || isToday ? 1 : 0.2 }}>
+                <div style={{ width: 52, height: 78, outline: isSel ? "1.5px solid " + C.accent : "none", borderRadius: 6, outlineOffset: 4 }}>
+                  {hasAny || isToday
+                    ? <MiniStone polish={polish} definition={definition} uid={ds.replace(/-/g,"_")} />
+                    : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <div style={{ width: 18, height: 28, border: "1px dashed " + C.inkFaint, borderRadius: 3 }} />
+                      </div>
+                  }
+                </div>
+                <div style={{ fontSize: 10, marginTop: 8, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: isToday ? 600 : 500, letterSpacing: "0.04em",
+                  color: isToday ? C.accent : C.inkMute }}>
+                  {isToday ? "Today" : dow}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div style={{ flex: 1, padding: "8px 26px 28px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+        {sel && sel.entry && (sel.entry.p > 0 || sel.entry.m > 0) ? (
+          <div style={{ animation: "hewnFade 300ms ease" }}>
+            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 14, color: C.inkMute, marginBottom: 16 }}>
+              {sel.isToday ? "Today" : sel.d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+            </div>
+            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 38, fontWeight: 400, lineHeight: 1.1, marginBottom: 8 }}>
+              <span style={{ color: C.ink }}>{Math.round(sel.entry.p)}</span>
+              <span style={{ color: C.inkMute, fontSize: 22 }}> / {sel.entry.pTarget || 100} g protein</span>
+            </div>
+            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 400 }}>
+              <span style={{ color: C.ink }}>{Math.round(sel.entry.m)}</span>
+              <span style={{ color: C.inkMute, fontSize: 18 }}> / {sel.entry.mTarget || 30} min movement</span>
+            </div>
+          </div>
+        ) : (
+          <div style={{ color: C.inkMute, fontSize: 13, fontFamily: "'Hanken Grotesk', sans-serif", lineHeight: 1.6 }}>
+            {sel && !sel.entry ? "A rest day." : "Tap a stone to see the day’s numbers."}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ---- persistence helpers ----------------------------------------- */
 function loadState() { try { return JSON.parse(localStorage.getItem("hewn-v1") || "null"); } catch (e) { return null; } }
 
 /* ---- app ---------------------------------------------------------- */
@@ -647,7 +780,7 @@ function Hewn() {
   const [pTarget, setPTarget] = useState(init && init.pTarget ? init.pTarget : 100);
   const [mTarget, setMTarget] = useState(init && init.mTarget ? init.mTarget : 30);
   const [profile, setProfile] = useState(init && init.profile ? init.profile : null);
-  const [onboard, setOnboard] = useState(!(init && init.profile)); // first open -> show quiz
+  const [onboard, setOnboard] = useState(!(init && init.profile));
   const [editQuiz, setEditQuiz] = useState(false);
   const [pTo, setPTo] = useState(sameDay ? (init.p || 0) : 0);
   const [mTo, setMTo] = useState(sameDay ? (init.m || 0) : 0);
@@ -655,9 +788,15 @@ function Hewn() {
   const [m, setM] = useState(sameDay ? (init.m || 0) : 0);
   const [toast, setToast] = useState(null);
   const [settings, setSettings] = useState(false);
-  const [sheet, setSheet] = useState(null); // 'protein' | 'movement' | null
+  const [sheet, setSheet] = useState(null);
+  const [shelfOpen, setShelfOpen] = useState(false);
+  const [shelf, setShelf] = useState(init && init.shelf ? init.shelf : []);
+  const [appearance, setAppearance] = useState(init && init.appearance ? init.appearance : "light");
   const [phone, setPhone] = useState(typeof window !== "undefined" && window.innerWidth <= 480);
   const undo = useRef([]); const toastT = useRef(null); const raf = useRef(null);
+  const prevComplete = useRef(false);
+
+  const activeC = appearance === "dark" || (appearance === "system" && typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches) ? DARK : LIGHT;
 
   useEffect(() => {
     const tick = () => {
@@ -678,15 +817,30 @@ function Hewn() {
 
   // persist
   useEffect(() => {
-    localStorage.setItem("hewn-v1", JSON.stringify({ date: todayStr(), p: pTo, m: mTo, pTarget, mTarget, profile }));
-  }, [pTo, mTo, pTarget, mTarget, profile]);
+    localStorage.setItem("hewn-v1", JSON.stringify({ date: todayStr(), p: pTo, m: mTo, pTarget, mTarget, profile, shelf, appearance }));
+  }, [pTo, mTo, pTarget, mTarget, profile, shelf, appearance]);
+
+  // archive today when day completes
+  useEffect(() => {
+    if (complete && !prevComplete.current) {
+      const today = todayStr();
+      setShelf(prev => [...prev.filter(e => e.date !== today), { date: today, p: pTo, m: mTo, pTarget, mTarget }]);
+    }
+    prevComplete.current = complete;
+  }, [complete]);
 
   // roll over to a fresh stone when the app returns on a new day
   useEffect(() => {
     const onVis = () => {
       if (document.visibilityState === "visible") {
         const d = loadState();
-        if (d && d.date !== todayStr()) { setPTo(0); setMTo(0); setP(0); setM(0); }
+        if (d && d.date !== todayStr()) {
+          if (d.p > 0 || d.m > 0) {
+            setShelf(prev => [...prev.filter(e => e.date !== d.date),
+              { date: d.date, p: d.p || 0, m: d.m || 0, pTarget: d.pTarget || 100, mTarget: d.mTarget || 30 }]);
+          }
+          setPTo(0); setMTo(0); setP(0); setM(0);
+        }
       }
     };
     document.addEventListener("visibilitychange", onVis);
@@ -717,7 +871,13 @@ function Hewn() {
     const last = undo.current.pop(); if (!last) return;
     if (last[0] === "p") setPTo(last[1]); else setMTo(last[1]); setToast(null);
   };
-  const newDay = () => { setPTo(0); setMTo(0); undo.current = []; setToast(null); };
+  const newDay = () => {
+    if (pTo > 0 || mTo > 0) {
+      const today = todayStr();
+      setShelf(prev => [...prev.filter(e => e.date !== today), { date: today, p: pTo, m: mTo, pTarget, mTarget }]);
+    }
+    setPTo(0); setMTo(0); undo.current = []; setToast(null);
+  };
 
   const pDone = pTo >= pTarget - 0.5;
   const mDone = mTo >= mTarget - 0.5;
@@ -726,21 +886,22 @@ function Hewn() {
   const sub = complete ? "Saved to your collection" : null;
 
   const wrap = phone
-    ? { minHeight: "100dvh", width: "100%", background: C.base, fontFamily: "'Hanken Grotesk', sans-serif" }
-    : { minHeight: "100vh", width: "100%", background: "#2A2722", display: "grid", placeItems: "center", padding: "28px 0", fontFamily: "'Hanken Grotesk', sans-serif" };
+    ? { minHeight: "100dvh", width: "100%", background: activeC.base, fontFamily: "'Hanken Grotesk', sans-serif" }
+    : { minHeight: "100vh", width: "100%", background: activeC.outer, display: "grid", placeItems: "center", padding: "28px 0", fontFamily: "'Hanken Grotesk', sans-serif" };
   const frame = phone
-    ? { position: "relative", width: "100%", minHeight: "100dvh", background: C.base, color: C.ink, display: "flex", flexDirection: "column",
+    ? { position: "relative", width: "100%", minHeight: "100dvh", background: activeC.base, color: activeC.ink, display: "flex", flexDirection: "column",
         padding: "calc(env(safe-area-inset-top) + 18px) 24px calc(env(safe-area-inset-bottom) + 20px)", boxSizing: "border-box", overflow: "hidden" }
-    : { position: "relative", width: 375, height: 760, background: C.base, color: C.ink, borderRadius: 44, overflow: "hidden",
-        boxShadow: "0 40px 90px rgba(0,0,0,0.45)", display: "flex", flexDirection: "column", padding: "22px 26px 26px", boxSizing: "border-box" };
+    : { position: "relative", width: 375, height: 760, background: activeC.base, color: activeC.ink, borderRadius: 44, overflow: "hidden",
+        boxShadow: "0 40px 90px rgba(0,0,0,0.55)", display: "flex", flexDirection: "column", padding: "22px 26px 26px", boxSizing: "border-box" };
 
   return (
+    <ThemeCtx.Provider value={activeC}>
     <div style={wrap}>
       <div style={frame}>
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.05, mixBlendMode: "multiply", zIndex: 2,
           backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
 
-        <button onClick={() => setSettings(true)} style={{ position: "absolute", top: phone ? "calc(env(safe-area-inset-top) + 14px)" : 22, right: 24, border: "none", background: "none", color: C.inkMute, cursor: "pointer", padding: 4, zIndex: 3 }}>
+        <button onClick={() => setSettings(true)} style={{ position: "absolute", top: phone ? "calc(env(safe-area-inset-top) + 14px)" : 22, right: 24, border: "none", background: "none", color: activeC.inkMute, cursor: "pointer", padding: 4, zIndex: 3 }}>
           <ISettings size={18} />
         </button>
 
@@ -753,53 +914,75 @@ function Hewn() {
         </div>
 
         <div style={{ textAlign: "center", marginBottom: 16, minHeight: 34 }}>
-          <div style={{ fontFamily: "'Fraunces', serif", fontSize: 17, color: complete ? C.accent : C.inkMute, transition: "color 600ms" }}>{headline}</div>
-          {sub && <div style={{ fontSize: 12, color: C.inkMute, marginTop: 3, animation: "hewnFade 700ms ease" }}>{sub}</div>}
+          <div style={{ fontFamily: "'Fraunces', serif", fontSize: 17, color: complete ? activeC.accent : activeC.inkMute, transition: "color 600ms" }}>{headline}</div>
+          {sub && <div style={{ fontSize: 12, color: activeC.inkMute, marginTop: 3, animation: "hewnFade 700ms ease" }}>{sub}</div>}
         </div>
 
         <Metric name="Movement" value={m} target={mTarget} unit="min" presets={MOVEMENT} onAdd={addM} done={mDone} onMore={() => setSheet("movement")} />
 
-        <button onClick={newDay} style={{ marginTop: 16, alignSelf: "center", border: "none", background: "none", cursor: "pointer", color: C.inkMute, fontSize: 12, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 6 }}>
-          <IReset size={12} /> New day
-        </button>
+        <div style={{ marginTop: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 22 }}>
+          <button onClick={newDay} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute, fontSize: 12, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5 }}>
+            <IReset size={12} /> New day
+          </button>
+          <button onClick={() => setShelfOpen(true)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute, fontSize: 12, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5 }}>
+            <IChevUp size={12} /> Shelf
+          </button>
+        </div>
 
         {sheet === "protein" && <MoreSheet title="Add protein" unit="g" presets={PROTEIN} onPick={(v, n) => addP(v, n)} onClose={() => setSheet(null)} blocks />}
         {sheet === "movement" && <MoreSheet title="Add movement" unit="min" presets={MOVEMENT} onPick={(v, n) => addM(v, n)} onClose={() => setSheet(null)} />}
+        {shelfOpen && <ShelfView shelf={shelf} todayP={pTo} todayM={mTo} todayPTarget={pTarget} todayMTarget={mTarget} onClose={() => setShelfOpen(false)} />}
 
         {onboard && <Quiz initial={profile || {}} onDone={(prof, t) => { setProfile(prof); setPTarget(t); setOnboard(false); }} />}
         {editQuiz && <Quiz initial={profile || {}} onClose={() => setEditQuiz(false)} onDone={(prof, t) => { setProfile(prof); setPTarget(t); setEditQuiz(false); }} />}
 
         {toast && (
-          <div style={{ position: "absolute", left: "50%", bottom: 96, transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 12, padding: "8px 8px 8px 18px", background: "rgba(26,24,21,0.92)", color: C.base, borderRadius: 100, zIndex: 4, fontSize: 13.5, animation: "hewnFade 240ms ease", backdropFilter: "blur(6px)", maxWidth: "88%" }}>
+          <div style={{ position: "absolute", left: "50%", bottom: 96, transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 12, padding: "8px 8px 8px 18px", background: activeC.ink + "ec", color: activeC.base, borderRadius: 100, zIndex: 4, fontSize: 13.5, animation: "hewnFade 240ms ease", backdropFilter: "blur(6px)", maxWidth: "88%" }}>
             <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{toast.msg}</span>
-            {toast.withUndo && <button onClick={doUndo} style={{ border: "none", background: "rgba(244,241,234,0.16)", color: C.base, cursor: "pointer", fontSize: 13, fontWeight: 600, padding: "7px 16px", borderRadius: 100, flex: "0 0 auto" }}>Undo</button>}
+            {toast.withUndo && <button onClick={doUndo} style={{ border: "none", background: "rgba(255,255,255,0.12)", color: activeC.base, cursor: "pointer", fontSize: 13, fontWeight: 600, padding: "7px 16px", borderRadius: 100, flex: "0 0 auto" }}>Undo</button>}
           </div>
         )}
 
         {settings && (<>
-          <div onClick={() => setSettings(false)} style={{ position: "absolute", inset: 0, background: "rgba(26,24,21,0.25)", zIndex: 5 }} />
-          <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 6, background: C.base, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: "26px 26px calc(env(safe-area-inset-bottom) + 34px)", boxShadow: "0 -20px 50px rgba(0,0,0,0.2)", animation: "hewnFade 260ms ease" }}>
+          <div onClick={() => setSettings(false)} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.22)", zIndex: 5 }} />
+          <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 6, background: activeC.base, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: "26px 26px calc(env(safe-area-inset-bottom) + 34px)", boxShadow: "0 -20px 50px rgba(0,0,0,0.24)", animation: "hewnFade 260ms ease" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 26 }}>
-              <span style={{ fontFamily: "'Fraunces', serif", fontSize: 22 }}>Targets</span>
-              <button onClick={() => setSettings(false)} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute }}><IX size={18} /></button>
+              <span style={{ fontFamily: "'Fraunces', serif", fontSize: 22, color: activeC.ink }}>Targets</span>
+              <button onClick={() => setSettings(false)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute }}><IX size={18} /></button>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
-              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: C.inkMute }}>Protein</span>
+              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>Protein</span>
               <Stepper value={pTarget} step={5} unit="g" onChange={(d) => setPTarget((v) => Math.max(20, v + d))} />
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: C.inkMute }}>Movement</span>
+              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>Movement</span>
               <Stepper value={mTarget} step={5} unit="min" onChange={(d) => setMTarget((v) => Math.max(5, v + d))} />
             </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 22 }}>
+              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>Appearance</span>
+              <div style={{ display: "flex", gap: 6 }}>
+                {["light","dark","system"].map(a => (
+                  <button key={a} onClick={() => setAppearance(a)}
+                    style={{ height: 34, padding: "0 13px", borderRadius: 10, border: "none", cursor: "pointer",
+                      background: appearance === a ? activeC.ink : activeC.inkFaint,
+                      color: appearance === a ? activeC.base : activeC.ink,
+                      fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12.5, fontWeight: 500,
+                      transition: "background 280ms, color 280ms" }}>
+                    {a.charAt(0).toUpperCase()+a.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
             <button onClick={() => { setSettings(false); setEditQuiz(true); }}
-              style={{ marginTop: 24, width: "100%", height: 48, borderRadius: 14, border: "none", cursor: "pointer", background: "rgba(26,24,21,0.05)", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14.5 }}>
+              style={{ marginTop: 22, width: "100%", height: 48, borderRadius: 14, border: "none", cursor: "pointer", background: activeC.inkFaint, color: activeC.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14.5 }}>
               Recalculate protein from quiz
             </button>
-            <div style={{ marginTop: 20, fontSize: 12.5, color: C.inkMute, lineHeight: 1.5 }}>A gentle reminder, off by default. These are set — change them anytime.</div>
+            <div style={{ marginTop: 20, fontSize: 12.5, color: activeC.inkMute, lineHeight: 1.5 }}>A gentle reminder, off by default. These are set — change them anytime.</div>
           </div>
         </>)}
       </div>
     </div>
+    </ThemeCtx.Provider>
   );
 }
 

@@ -277,29 +277,81 @@ function ProgressLine({ pct }) {
     <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: (pct*100)+"%", background: C.accent, borderRadius: 2, transition: "width 420ms cubic-bezier(.25,.1,.25,1)" }} />
   </div>);
 }
-/* PROTEIN — counted in egg-size pieces (the "block"). v = grams of protein per one unit.
-   u = what one tap means. Most are an egg-size piece; drinks/cups are per serving.
-   Mixed foods (meatball, breaded, sausage) are pre-discounted for their bread/veg. */
+/* PROTEIN — every food keeps its natural unit. v = grams of protein per one unit.
+   u = the unit the user counts in: "egg"/"piece" use the egg-shape picker;
+   scoop/cup/glass/slice/handful/spoon/bar use a numeric picker labelled by that unit.
+   g = category (for the dropdown groups). Mixed foods are pre-discounted. Values approximate. */
 const PROTEIN = [
-  { n: "Egg", v: 6, u: "egg" },
-  { n: "Chicken", v: 15, u: "piece" },
-  { n: "Fish", v: 11, u: "piece" },
-  { n: "Beef", v: 13, u: "piece" },
-  { n: "Veal", v: 13, u: "piece" },
-  { n: "Turkey", v: 14, u: "piece" },
-  { n: "Salmon", v: 12, u: "piece" },
-  { n: "Shrimp", v: 12, u: "piece" },
-  { n: "Tuna", v: 13, u: "piece" },
-  { n: "Tofu", v: 7, u: "piece" },
-  { n: "Cheese", v: 12, u: "piece" },
-  { n: "Yogurt", v: 15, u: "cup" },
-  { n: "Shake", v: 25, u: "scoop" },
-  { n: "Beans", v: 6, u: "scoop" },
-  { n: "Nuts", v: 8, u: "handful" },
-  { n: "Meatball", v: 8, u: "piece" },
-  { n: "Breaded", v: 9, u: "piece" },
-  { n: "Sausage", v: 7, u: "piece" },
+  // Meat
+  { n: "Chicken", v: 15, u: "piece", g: "Meat" },
+  { n: "Turkey", v: 14, u: "piece", g: "Meat" },
+  { n: "Beef", v: 13, u: "piece", g: "Meat" },
+  { n: "Veal", v: 13, u: "piece", g: "Meat" },
+  { n: "Pork", v: 13, u: "piece", g: "Meat" },
+  { n: "Lamb", v: 13, u: "piece", g: "Meat" },
+  { n: "Duck", v: 12, u: "piece", g: "Meat" },
+  { n: "Ham", v: 5, u: "slice", g: "Meat" },
+  { n: "Bacon", v: 3, u: "slice", g: "Meat" },
+  { n: "Sausage", v: 7, u: "piece", g: "Meat" },
+  { n: "Meatball", v: 8, u: "piece", g: "Meat" },
+  { n: "Breaded chicken", v: 9, u: "piece", g: "Meat" },
+  // Fish & seafood
+  { n: "Fish (white)", v: 11, u: "piece", g: "Fish & seafood" },
+  { n: "Salmon", v: 12, u: "piece", g: "Fish & seafood" },
+  { n: "Tuna", v: 13, u: "piece", g: "Fish & seafood" },
+  { n: "Cod", v: 10, u: "piece", g: "Fish & seafood" },
+  { n: "Shrimp", v: 12, u: "piece", g: "Fish & seafood" },
+  { n: "Crab", v: 10, u: "piece", g: "Fish & seafood" },
+  { n: "Sardines", v: 11, u: "piece", g: "Fish & seafood" },
+  // Eggs & dairy
+  { n: "Egg", v: 6, u: "egg", g: "Eggs & dairy" },
+  { n: "Egg white", v: 4, u: "egg", g: "Eggs & dairy" },
+  { n: "Cheese", v: 12, u: "piece", g: "Eggs & dairy" },
+  { n: "Mozzarella", v: 12, u: "piece", g: "Eggs & dairy" },
+  { n: "Cottage cheese", v: 11, u: "scoop", g: "Eggs & dairy" },
+  { n: "Ricotta", v: 7, u: "scoop", g: "Eggs & dairy" },
+  { n: "Greek yogurt", v: 15, u: "cup", g: "Eggs & dairy" },
+  { n: "Yogurt", v: 8, u: "cup", g: "Eggs & dairy" },
+  { n: "Milk", v: 8, u: "glass", g: "Eggs & dairy" },
+  { n: "Kefir", v: 8, u: "glass", g: "Eggs & dairy" },
+  // Plant
+  { n: "Tofu", v: 7, u: "piece", g: "Plant" },
+  { n: "Tempeh", v: 10, u: "piece", g: "Plant" },
+  { n: "Edamame", v: 9, u: "scoop", g: "Plant" },
+  { n: "Lentils", v: 9, u: "scoop", g: "Plant" },
+  { n: "Chickpeas", v: 7, u: "scoop", g: "Plant" },
+  { n: "Black beans", v: 7, u: "scoop", g: "Plant" },
+  { n: "Kidney beans", v: 7, u: "scoop", g: "Plant" },
+  { n: "Peas", v: 4, u: "scoop", g: "Plant" },
+  { n: "Quinoa", v: 4, u: "scoop", g: "Plant" },
+  { n: "Hummus", v: 2, u: "spoon", g: "Plant" },
+  { n: "Peanut butter", v: 4, u: "spoon", g: "Plant" },
+  { n: "Nuts", v: 7, u: "handful", g: "Plant" },
+  { n: "Seeds", v: 5, u: "spoon", g: "Plant" },
+  { n: "Soy milk", v: 7, u: "glass", g: "Plant" },
+  // Supplements
+  { n: "Protein shake", v: 25, u: "scoop", g: "Supplements" },
+  { n: "Whey powder", v: 24, u: "scoop", g: "Supplements" },
+  { n: "Protein bar", v: 20, u: "bar", g: "Supplements" },
+  // Grains
+  { n: "Bread", v: 3, u: "slice", g: "Grains" },
+  { n: "Oats", v: 5, u: "scoop", g: "Grains" },
+  { n: "Pasta", v: 4, u: "scoop", g: "Grains" },
+  { n: "Rice", v: 2, u: "scoop", g: "Grains" },
 ];
+const PROTEIN_GROUPS = ["Meat", "Fish & seafood", "Eggs & dairy", "Plant", "Supplements", "Grains"];
+const FAV_PROTEIN = ["Egg", "Chicken", "Fish (white)"];
+function isEggUnit(u) { return u === "egg" || u === "piece"; }
+function plural(u, n) {
+  if (n === 1) return u;
+  if (u === "glass") return "glasses";
+  return u + "s";
+}
+function fmtCount(n) {
+  const w = Math.floor(n), half = n - w >= 0.5;
+  if (w === 0 && half) return "½";
+  return half ? w + "½" : String(w);
+}
 const MOVEMENT = [
   { n: "Short walk", v: 10 }, { n: "Workout", v: 30 }, { n: "Stretch", v: 15 },
   { n: "Long walk", v: 30 }, { n: "Cycle", v: 20 }, { n: "Run", v: 20 },
@@ -313,6 +365,81 @@ function Block({ size = 9, color = C.inkMute }) {
   </svg>);
 }
 
+/* personal daily protein target from a short quiz.
+   Rule-of-thumb: grams per kg of body weight, scaled by goal, nudged by age/sex.
+   This is a sensible default, not medical advice — always editable. */
+function proteinTarget({ weight, age, sex, goal }) {
+  const w = Number(weight) || 70;
+  let perKg = goal === "build" ? 1.8 : goal === "lose" ? 1.6 : goal === "maintain" ? 1.4 : 1.2;
+  if (Number(age) >= 60) perKg += 0.15;        // older adults preserve muscle better with a bit more
+  let g = w * perKg;
+  if (sex === "female") g *= 0.95;             // slight average lean-mass adjustment
+  return Math.max(40, Math.round(g / 5) * 5);  // round to nearest 5g, floor 40
+}
+
+/* one little egg — full, half, or empty */
+function Egg({ fill = 1, size = 30, onClick }) {
+  const id = "eg" + Math.round(Math.random() * 1e6);
+  return (
+    <svg width={size} height={size * 1.25} viewBox="0 0 24 30" onClick={onClick}
+      style={{ cursor: onClick ? "pointer" : "default", flex: "0 0 auto" }}>
+      <defs>
+        <clipPath id={id}><path d="M12 1 C18 1 22 12 22 19 C22 25 17.5 29 12 29 C6.5 29 2 25 2 19 C2 12 6 1 12 1 Z" /></clipPath>
+      </defs>
+      <path d="M12 1 C18 1 22 12 22 19 C22 25 17.5 29 12 29 C6.5 29 2 25 2 19 C2 12 6 1 12 1 Z"
+        fill="none" stroke={C.accent} strokeWidth="1.4" />
+      {fill > 0 && (
+        <g clipPath={"url(#" + id + ")"}>
+          <rect x={fill >= 1 ? 0 : 12} y="0" width={fill >= 1 ? 24 : 12} height="30" fill={C.accent} opacity="0.9" />
+        </g>
+      )}
+    </svg>
+  );
+}
+/* a row of eggs you tap to set how many pieces: tap egg n -> n eggs; tap a filled egg's
+   right edge again to half it. Simpler: tapping egg i sets count to i; a ½ control toggles a trailing half. */
+function EggRow({ count, onChange, max = 6 }) {
+  const whole = Math.floor(count);
+  const half = count - whole >= 0.5;
+  const eggs = [];
+  for (let i = 1; i <= max; i++) {
+    let fill = 0;
+    if (i <= whole) fill = 1;
+    else if (i === whole + 1 && half) fill = 0.5;
+    eggs.push(<Egg key={i} fill={fill} onClick={() => onChange(i)} />);
+  }
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>{eggs}</div>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={() => onChange(Math.max(0.5, count - 0.5))}
+          style={{ flex: 1, height: 38, borderRadius: 11, border: "none", cursor: "pointer", background: "rgba(26,24,21,0.05)", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 }}>− half</button>
+        <button onClick={() => onChange(count + 0.5)}
+          style={{ flex: 1, height: 38, borderRadius: 11, border: "none", cursor: "pointer", background: "rgba(26,24,21,0.05)", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 }}>+ half</button>
+      </div>
+    </div>
+  );
+}
+
+/* numeric picker for scoop/cup/glass/slice/handful/spoon/bar units */
+function NumPicker({ count, onChange, unit }) {
+  const big = { width: 46, height: 46, borderRadius: 13, border: "none", cursor: "pointer", background: "rgba(26,24,21,0.06)", color: C.ink, display: "grid", placeItems: "center" };
+  const small = { flex: 1, height: 38, borderRadius: 11, border: "none", cursor: "pointer", background: "rgba(26,24,21,0.05)", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 };
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 18, marginBottom: 12 }}>
+        <button style={big} onClick={() => onChange(Math.max(0.5, count - 1))}><IMinus size={18} /></button>
+        <div style={{ minWidth: 92, textAlign: "center", fontFamily: "'Fraunces', serif", fontSize: 26 }}>{fmtCount(count)} <span style={{ fontSize: 15, color: C.inkMute }}>{plural(unit, count)}</span></div>
+        <button style={big} onClick={() => onChange(count + 1)}><IPlus size={18} /></button>
+      </div>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button style={small} onClick={() => onChange(Math.max(0.5, count - 0.5))}>− half</button>
+        <button style={small} onClick={() => onChange(count + 0.5)}>+ half</button>
+      </div>
+    </div>
+  );
+}
+
 function Chip({ name, amount, unit, block, onTap, dim }) {
   const [press, setPress] = useState(false);
   return (<button onPointerDown={() => setPress(true)} onPointerUp={() => setPress(false)} onPointerLeave={() => setPress(false)} onClick={onTap} disabled={dim}
@@ -323,7 +450,7 @@ function Chip({ name, amount, unit, block, onTap, dim }) {
       transform: press ? "scale(0.97)" : "scale(1)", padding: "0 4px" }}>
     <span style={{ fontSize: 14.5, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>{name}</span>
     <span style={{ fontSize: 11, color: C.inkMute, display: "inline-flex", alignItems: "center" }}>
-      {block && <Block />}+{amount} {unit}
+      {block ? <><Block />1 {unit}</> : <>+{amount} {unit}</>}
     </span>
   </button>);
 }
@@ -340,49 +467,75 @@ function Metric({ name, value, target, unit, presets, onAdd, done, onMore, block
     </div>
     <ProgressLine pct={pct} />
     <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
-      {presets.slice(0, 3).map((it) => <Chip key={it.n} name={it.n} amount={it.v} unit={unit} block={block} dim={done} onTap={() => onAdd(it.v, it.n)} />)}
+      {(block ? FAV_PROTEIN.map((nm) => presets.find((x) => x.n === nm)).filter(Boolean) : presets.slice(0, 3))
+        .map((it) => <Chip key={it.n} name={it.n.split(" (")[0]} amount={it.v} unit={block ? it.u : unit} block={block} dim={done} onTap={() => onAdd(it.v, it.n)} />)}
     </div>
   </div>);
 }
 function MoreSheet({ title, unit, presets, onPick, onClose, blocks }) {
-  const [qty, setQty] = useState(1); // egg-size pieces per tap: 0.5 / 1 / 2
-  const opts = [["½", 0.5], ["1", 1], ["2", 2]];
+  const [food, setFood] = useState(presets[0]);
+  const [count, setCount] = useState(1);
+
+  const sheetWrap = { position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 6, background: C.base, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: "26px 24px calc(env(safe-area-inset-bottom) + 28px)", boxShadow: "0 -20px 50px rgba(0,0,0,0.2)", animation: "hewnFade 260ms ease", maxHeight: "82%", overflowY: "auto" };
+  const header = (<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+    <span style={{ fontFamily: "'Fraunces', serif", fontSize: 22 }}>{title}</span>
+    <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute }}><IX size={18} /></button>
+  </div>);
+
+  if (!blocks) {
+    // movement: simple activity grid
+    return (<>
+      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(26,24,21,0.25)", zIndex: 5 }} />
+      <div style={sheetWrap}>
+        {header}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {presets.map((it) => (
+            <button key={it.n} onClick={() => onPick(it.v, it.n)}
+              style={{ height: 62, border: "none", borderRadius: 16, cursor: "pointer", background: "rgba(26,24,21,0.045)", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2 }}>
+              <span style={{ fontSize: 15, fontWeight: 500 }}>{it.n}</span>
+              <span style={{ fontSize: 11, color: C.inkMute }}>+{it.v} {unit}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </>);
+  }
+
+  // protein: food dropdown (grouped) + unit-aware picker. No grams shown.
+  const egg = isEggUnit(food.u);
+  const grams = Math.round(food.v * count);
+  const qLabel = food.u === "egg" ? "How many eggs?" : egg ? "How many egg-size pieces?" : "How many " + plural(food.u, 2) + "?";
+  const foodName = food.n.split(" (")[0].toLowerCase();
   return (<>
     <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(26,24,21,0.25)", zIndex: 5 }} />
-    <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 6, background: C.base, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: "26px 24px calc(env(safe-area-inset-bottom) + 28px)", boxShadow: "0 -20px 50px rgba(0,0,0,0.2)", animation: "hewnFade 260ms ease", maxHeight: "78%", overflowY: "auto" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: blocks ? 14 : 20 }}>
-        <span style={{ fontFamily: "'Fraunces', serif", fontSize: 22 }}>{title}</span>
-        <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute }}><IX size={18} /></button>
+    <div style={sheetWrap}>
+      {header}
+      <div style={{ fontSize: 11.5, letterSpacing: "0.16em", textTransform: "uppercase", color: C.inkMute, marginBottom: 8 }}>Food</div>
+      <div style={{ position: "relative", marginBottom: 24 }}>
+        <select value={food.n} onChange={(e) => { setFood(presets.find((x) => x.n === e.target.value)); setCount(1); }}
+          style={{ width: "100%", height: 52, borderRadius: 14, border: "none", background: "rgba(26,24,21,0.045)", color: C.ink,
+            fontFamily: "'Fraunces', serif", fontSize: 19, padding: "0 18px", appearance: "none", WebkitAppearance: "none", cursor: "pointer" }}>
+          {PROTEIN_GROUPS.map((grp) => (
+            <optgroup key={grp} label={grp}>
+              {presets.filter((it) => it.g === grp).map((it) => <option key={it.n} value={it.n}>{it.n}</option>)}
+            </optgroup>
+          ))}
+        </select>
+        <span style={{ position: "absolute", right: 18, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: C.inkMute, fontSize: 13 }}>▾</span>
       </div>
-      {blocks && (
-        <div style={{ marginBottom: 18 }}>
-          <div style={{ fontSize: 11.5, color: C.inkMute, marginBottom: 8 }}>How many egg-size pieces?</div>
-          <div style={{ display: "flex", gap: 8 }}>
-            {opts.map(([lbl, val]) => (
-              <button key={lbl} onClick={() => setQty(val)}
-                style={{ flex: 1, height: 40, borderRadius: 12, border: "none", cursor: "pointer",
-                  background: qty === val ? C.accent : "rgba(26,24,21,0.045)", color: qty === val ? C.base : C.ink,
-                  fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 15, fontWeight: 500, transition: "background 160ms ease" }}>
-                {lbl}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        {presets.map((it) => {
-          const amt = Math.round(it.v * (blocks ? qty : 1));
-          const sub = blocks ? (qty === 1 ? "1 " + (it.u || "piece") : qty + " " + (it.u || "piece") + "s") : null;
-          return (
-            <button key={it.n} onClick={() => onPick(amt, it.n)}
-              style={{ height: 62, border: "none", borderRadius: 16, cursor: "pointer", background: "rgba(26,24,21,0.045)", color: C.ink,
-                fontFamily: "'Hanken Grotesk', sans-serif", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2 }}>
-              <span style={{ fontSize: 15, fontWeight: 500 }}>{it.n}</span>
-              <span style={{ fontSize: 11, color: C.inkMute }}>{sub ? sub + " · " : ""}+{amt} {unit}</span>
-            </button>
-          );
-        })}
+
+      <div style={{ fontSize: 11.5, letterSpacing: "0.16em", textTransform: "uppercase", color: C.inkMute, marginBottom: 12 }}>{qLabel}</div>
+      {egg ? <EggRow count={count} onChange={setCount} /> : <NumPicker count={count} onChange={setCount} unit={food.u} />}
+
+      <div style={{ textAlign: "center", margin: "20px 0 18px", fontFamily: "'Fraunces', serif", fontSize: 17, color: C.ink }}>
+        {fmtCount(count)} {egg ? plural(food.u === "egg" ? "egg" : "piece", count) : plural(food.u, count)} of {foodName}
       </div>
+
+      <button onClick={() => onPick(grams, food.n.split(" (")[0])}
+        style={{ width: "100%", height: 56, borderRadius: 16, border: "none", cursor: "pointer", background: C.accent, color: C.base,
+          fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 16, fontWeight: 600 }}>
+        Add
+      </button>
     </div>
   </>);
 }
@@ -397,6 +550,61 @@ function Stepper({ value, step, unit, onChange }) {
 
 /* ---- persistence helpers ----------------------------------------- */
 function todayStr() { const d = new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+/* short quiz -> personal protein target. Used for onboarding and re-editable in settings. */
+function Quiz({ initial, onDone, onClose }) {
+  const [sex, setSex] = useState(initial.sex || "female");
+  const [age, setAge] = useState(initial.age || 30);
+  const [weight, setWeight] = useState(initial.weight || 65);
+  const [height, setHeight] = useState(initial.height || 168);
+  const [goal, setGoal] = useState(initial.goal || "maintain");
+
+  const target = proteinTarget({ weight, age, sex, goal });
+  const seg = (val, cur, set, label) => (
+    <button onClick={() => set(val)} style={{ flex: 1, height: 44, borderRadius: 12, border: "none", cursor: "pointer",
+      background: cur === val ? C.accent : "rgba(26,24,21,0.05)", color: cur === val ? C.base : C.ink,
+      fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14, fontWeight: 500, transition: "background 160ms ease" }}>{label}</button>
+  );
+  const row = (label, node) => (
+    <div style={{ marginBottom: 18 }}>
+      <div style={{ fontSize: 11.5, letterSpacing: "0.16em", textTransform: "uppercase", color: C.inkMute, marginBottom: 8 }}>{label}</div>
+      {node}
+    </div>
+  );
+  const numField = (val, set, unit, lo, hi) => (
+    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <input type="range" min={lo} max={hi} value={val} onChange={(e) => set(Number(e.target.value))}
+        style={{ flex: 1, accentColor: C.accent }} />
+      <span style={{ fontFamily: "'Fraunces', serif", fontSize: 18, minWidth: 64, textAlign: "right" }}>{val} {unit}</span>
+    </div>
+  );
+
+  return (
+    <div style={{ position: "absolute", inset: 0, zIndex: 8, background: C.base, padding: "calc(env(safe-area-inset-top) + 28px) 26px calc(env(safe-area-inset-bottom) + 28px)", overflowY: "auto", animation: "hewnFade 280ms ease" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+        <span style={{ fontFamily: "'Fraunces', serif", fontSize: 24 }}>Your protein</span>
+        {onClose && <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute }}><IX size={18} /></button>}
+      </div>
+      <p style={{ fontSize: 13.5, color: C.inkMute, lineHeight: 1.5, marginTop: 0, marginBottom: 24 }}>
+        A few details set your daily amount. A sensible starting point — not medical advice — and editable anytime.
+      </p>
+      {row("Sex", <div style={{ display: "flex", gap: 8 }}>{seg("female", sex, setSex, "Female")}{seg("male", sex, setSex, "Male")}</div>)}
+      {row("Age", numField(age, setAge, "", 16, 90))}
+      {row("Weight", numField(weight, setWeight, "kg", 40, 140))}
+      {row("Height", numField(height, setHeight, "cm", 140, 210))}
+      {row("Goal", <div style={{ display: "flex", gap: 8 }}>{seg("maintain", goal, setGoal, "Maintain")}{seg("lose", goal, setGoal, "Lean")}{seg("build", goal, setGoal, "Build")}</div>)}
+
+      <div style={{ textAlign: "center", margin: "10px 0 22px" }}>
+        <div style={{ fontSize: 11.5, letterSpacing: "0.16em", textTransform: "uppercase", color: C.inkMute, marginBottom: 4 }}>Daily protein</div>
+        <div style={{ fontFamily: "'Fraunces', serif", fontSize: 40 }}>{target} <span style={{ fontSize: 22, color: C.inkMute }}>g</span></div>
+      </div>
+      <button onClick={() => onDone({ sex, age, weight, height, goal }, target)}
+        style={{ width: "100%", height: 56, borderRadius: 16, border: "none", cursor: "pointer", background: C.accent, color: C.base, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 16, fontWeight: 600 }}>
+        {onClose ? "Save" : "Begin"}
+      </button>
+    </div>
+  );
+}
+
 function loadState() { try { return JSON.parse(localStorage.getItem("hewn-v1") || "null"); } catch (e) { return null; } }
 
 /* ---- app ---------------------------------------------------------- */
@@ -405,6 +613,9 @@ function Hewn() {
   const sameDay = init && init.date === todayStr();
   const [pTarget, setPTarget] = useState(init && init.pTarget ? init.pTarget : 100);
   const [mTarget, setMTarget] = useState(init && init.mTarget ? init.mTarget : 30);
+  const [profile, setProfile] = useState(init && init.profile ? init.profile : null);
+  const [onboard, setOnboard] = useState(!(init && init.profile)); // first open -> show quiz
+  const [editQuiz, setEditQuiz] = useState(false);
   const [pTo, setPTo] = useState(sameDay ? (init.p || 0) : 0);
   const [mTo, setMTo] = useState(sameDay ? (init.m || 0) : 0);
   const [p, setP] = useState(sameDay ? (init.p || 0) : 0);
@@ -434,8 +645,8 @@ function Hewn() {
 
   // persist
   useEffect(() => {
-    localStorage.setItem("hewn-v1", JSON.stringify({ date: todayStr(), p: pTo, m: mTo, pTarget, mTarget }));
-  }, [pTo, mTo, pTarget, mTarget]);
+    localStorage.setItem("hewn-v1", JSON.stringify({ date: todayStr(), p: pTo, m: mTo, pTarget, mTarget, profile }));
+  }, [pTo, mTo, pTarget, mTarget, profile]);
 
   // roll over to a fresh stone when the app returns on a new day
   useEffect(() => {
@@ -522,6 +733,9 @@ function Hewn() {
         {sheet === "protein" && <MoreSheet title="Add protein" unit="g" presets={PROTEIN} onPick={(v, n) => addP(v, n)} onClose={() => setSheet(null)} blocks />}
         {sheet === "movement" && <MoreSheet title="Add movement" unit="min" presets={MOVEMENT} onPick={(v, n) => addM(v, n)} onClose={() => setSheet(null)} />}
 
+        {onboard && <Quiz initial={profile || {}} onDone={(prof, t) => { setProfile(prof); setPTarget(t); setOnboard(false); }} />}
+        {editQuiz && <Quiz initial={profile || {}} onClose={() => setEditQuiz(false)} onDone={(prof, t) => { setProfile(prof); setPTarget(t); setEditQuiz(false); }} />}
+
         {toast && (
           <div style={{ position: "absolute", left: "50%", bottom: 96, transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 14, padding: "10px 18px", background: "rgba(26,24,21,0.9)", color: C.base, borderRadius: 100, zIndex: 4, fontSize: 13.5, animation: "hewnFade 240ms ease", backdropFilter: "blur(6px)" }}>
             <span>{toast.msg}</span>
@@ -544,7 +758,11 @@ function Hewn() {
               <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: C.inkMute }}>Movement</span>
               <Stepper value={mTarget} step={5} unit="min" onChange={(d) => setMTarget((v) => Math.max(5, v + d))} />
             </div>
-            <div style={{ marginTop: 28, fontSize: 12.5, color: C.inkMute, lineHeight: 1.5 }}>A gentle reminder, off by default. These are set — change them anytime.</div>
+            <button onClick={() => { setSettings(false); setEditQuiz(true); }}
+              style={{ marginTop: 24, width: "100%", height: 48, borderRadius: 14, border: "none", cursor: "pointer", background: "rgba(26,24,21,0.05)", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14.5 }}>
+              Recalculate protein from quiz
+            </button>
+            <div style={{ marginTop: 20, fontSize: 12.5, color: C.inkMute, lineHeight: 1.5 }}>A gentle reminder, off by default. These are set — change them anytime.</div>
           </div>
         </>)}
       </div>

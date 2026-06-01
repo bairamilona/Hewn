@@ -877,6 +877,12 @@ function Hewn() {
           <button onClick={() => setShelfOpen(true)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute, fontSize: 12, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5 }}>
             <IChevUp size={12} /> Shelf
           </button>
+          <button onClick={() => {
+            const url = `scriptable:///run/HewnSync?p=${Math.round(pTo)}&pt=${pTarget}&m=${Math.round(mTo)}&mt=${mTarget}&date=${todayStr()}`;
+            window.location.href = url;
+          }} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute, fontSize: 12, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5 }}>
+            <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg> Widget
+          </button>
         </div>
 
         {sheet === "protein" && <MoreSheet title="Add protein" unit="g" presets={PROTEIN} onPick={(v, n) => addP(v, n)} onClose={() => setSheet(null)} blocks />}

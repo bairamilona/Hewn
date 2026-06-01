@@ -441,9 +441,9 @@ function EggRow({ count, onChange, max = 6 }) {
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>{eggs}</div>
       <div style={{ display: "flex", gap: 8 }}>
         <button onClick={() => onChange(Math.max(0.5, count - 0.5))}
-          style={{ flex: 1, height: 38, borderRadius: 11, border: "none", cursor: "pointer", background: "rgba(26,24,21,0.05)", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 }}>− half</button>
+          style={{ flex: 1, height: 38, borderRadius: 100, border: `0.3px solid ${C.inkMute}`, cursor: "pointer", background: "transparent", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 }}>− half</button>
         <button onClick={() => onChange(count + 0.5)}
-          style={{ flex: 1, height: 38, borderRadius: 11, border: "none", cursor: "pointer", background: "rgba(26,24,21,0.05)", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 }}>+ half</button>
+          style={{ flex: 1, height: 38, borderRadius: 100, border: `0.3px solid ${C.inkMute}`, cursor: "pointer", background: "transparent", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 }}>+ half</button>
       </div>
     </div>
   );
@@ -452,8 +452,8 @@ function EggRow({ count, onChange, max = 6 }) {
 /* numeric picker for scoop/cup/glass/slice/handful/spoon/bar units */
 function NumPicker({ count, onChange, unit }) {
   const C = React.useContext(ThemeCtx);
-  const big = { width: 46, height: 46, borderRadius: 13, border: "none", cursor: "pointer", background: "rgba(26,24,21,0.06)", color: C.ink, display: "grid", placeItems: "center" };
-  const small = { flex: 1, height: 38, borderRadius: 11, border: "none", cursor: "pointer", background: "rgba(26,24,21,0.05)", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 };
+  const big = { width: 46, height: 46, borderRadius: "50%", border: `0.3px solid ${C.inkMute}`, cursor: "pointer", background: "transparent", color: C.ink, display: "grid", placeItems: "center" };
+  const small = { flex: 1, height: 38, borderRadius: 100, border: `0.3px solid ${C.inkMute}`, cursor: "pointer", background: "transparent", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 };
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 18, marginBottom: 12 }}>
@@ -473,11 +473,11 @@ function Chip({ name, amount, unit, block, onTap, dim }) {
   const C = React.useContext(ThemeCtx);
   const [press, setPress] = useState(false);
   return (<button onPointerDown={() => setPress(true)} onPointerUp={() => setPress(false)} onPointerLeave={() => setPress(false)} onClick={onTap} disabled={dim}
-    style={{ flex: 1, minWidth: 0, height: 62, border: "none", borderRadius: 16, cursor: dim ? "default" : "pointer",
-      background: press ? C.accentSoft : "rgba(26,24,21,0.045)", color: dim ? C.inkMute : C.ink,
+    style={{ flex: 1, minWidth: 0, height: 62, border: `0.3px solid ${press ? C.ink : C.inkMute}`, borderRadius: 100, cursor: dim ? "default" : "pointer",
+      background: press ? C.ink : "transparent", color: dim ? C.inkMute : press ? C.base : C.ink,
       fontFamily: "'Hanken Grotesk', sans-serif", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
-      opacity: dim ? 0.45 : 1, transition: "background 160ms ease, transform 160ms cubic-bezier(.25,.1,.25,1)",
-      transform: press ? "scale(0.97)" : "scale(1)", padding: "0 4px" }}>
+      opacity: dim ? 0.45 : 1, transition: "background 160ms ease, color 160ms ease, border-color 160ms ease",
+      padding: "0 4px" }}>
     <span style={{ fontSize: 14.5, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>{name}</span>
     <span style={{ fontSize: 11, color: C.inkMute, display: "inline-flex", alignItems: "center" }}>
       {block ? <><Block />1 {unit}</> : <>+{amount} {unit}</>}
@@ -597,7 +597,7 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks }) {
   // protein — STEP 1: pick a food from a clean grouped list (no native dropdown)
   if (!food) {
     return (<>
-      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(26,24,21,0.25)", zIndex: 5 }} />
+      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.18)", zIndex: 5 }} />
       <div style={sheetWrap}>
         {headerRow(titleEl("Choose a food"), closeBtn)}
         {PROTEIN_GROUPS.map((grp) => (
@@ -629,7 +629,7 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks }) {
   const foodName = food.n.split(" (")[0].toLowerCase();
   const backBtn = <button onClick={() => setFood(null)} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13.5, display: "inline-flex", alignItems: "center", gap: 4, padding: 0 }}>‹ Back</button>;
   return (<>
-    <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(26,24,21,0.25)", zIndex: 5 }} />
+    <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.18)", zIndex: 5 }} />
     <div style={sheetWrap}>
       {headerRow(backBtn, closeBtn)}
       <div style={{ fontFamily: "'Fraunces', serif", fontSize: 24, marginBottom: 22 }}>{food.n.split(" (")[0]}</div>
@@ -671,10 +671,10 @@ function Quiz({ initial, onDone, onClose }) {
   const [goal, setGoal] = useState(initial.goal || "maintain");
 
   const target = proteinTarget({ weight, age, sex, goal });
-  const stone = "rgba(26,24,21,0.88)"; // selected = deep stone, not clay
+  const stone = C.ink;
   const seg = (val, cur, set, label) => (
-    <button onClick={() => set(val)} style={{ flex: 1, height: 46, borderRadius: 13, border: "none", cursor: "pointer",
-      background: cur === val ? stone : "rgba(26,24,21,0.045)", color: cur === val ? C.base : C.ink,
+    <button onClick={() => set(val)} style={{ flex: 1, height: 46, borderRadius: 100, border: `0.3px solid ${cur === val ? C.ink : C.inkMute}`, cursor: "pointer",
+      background: cur === val ? stone : "transparent", color: cur === val ? C.base : C.ink,
       fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14, fontWeight: 500, transition: "background 320ms cubic-bezier(.25,.1,.25,1), color 320ms ease" }}>{label}</button>
   );
   let fi = 0;
@@ -970,6 +970,14 @@ function Hewn() {
       <div style={frame}>
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.05, mixBlendMode: "multiply", zIndex: 2,
           backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
+
+        <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 0 }} aria-hidden="true">
+          <circle cx="50%" cy="38%" r="110" fill="none" stroke="currentColor" strokeWidth="0.3" strokeOpacity="0.07" />
+          <circle cx="50%" cy="38%" r="72" fill="none" stroke="currentColor" strokeWidth="0.3" strokeOpacity="0.06" />
+          <circle cx="30%" cy="62%" r="80" fill="none" stroke="currentColor" strokeWidth="0.3" strokeOpacity="0.05" />
+          <circle cx="70%" cy="62%" r="80" fill="none" stroke="currentColor" strokeWidth="0.3" strokeOpacity="0.05" />
+          <circle cx="50%" cy="55%" r="140" fill="none" stroke="currentColor" strokeWidth="0.3" strokeOpacity="0.04" />
+        </svg>
 
         <button onClick={() => setSettings(true)} style={{ position: "absolute", top: phone ? "calc(env(safe-area-inset-top) + 14px)" : 22, right: 24, border: "none", background: "none", color: activeC.inkMute, cursor: "pointer", padding: 4, zIndex: 3 }}>
           <ISettings size={18} />

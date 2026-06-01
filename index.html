@@ -7,8 +7,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Hewn" />
 <meta name="theme-color" content="#F7F6F3" />
-<link rel="icon" type="image/png" href="assets/emojis/state4.png" />
-<link rel="apple-touch-icon" href="assets/emojis/state4.png" />
+<link rel="icon" type="image/png" href="assets/icons/icon-192.png" />
+<link rel="apple-touch-icon" href="assets/icons/icon-180.png" />
+<link rel="manifest" href="manifest.json" />
 <title>Hewn</title>
 <style>
   html, body { margin: 0; height: 100%; background: #F7F6F3; overscroll-behavior: none; }
@@ -938,6 +939,11 @@ function Hewn() {
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<Hewn />);
+</script>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
 </script>
 </body>
 </html>

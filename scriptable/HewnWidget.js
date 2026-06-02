@@ -33,13 +33,33 @@ const SVGS = [
   `<svg width="353" height="353" viewBox="0 0 353 353" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="176.5" cy="176.5" r="176.5" fill="#D9D9D9"/><path d="M63 217C100.167 254.333 197.8 306.6 291 217C257.333 265.667 164.6 333.8 63 217Z" fill="black"/><ellipse cx="69.5" cy="195" rx="45.5" ry="34" fill="url(#ck0)"/><ellipse cx="275.5" cy="195" rx="45.5" ry="34" fill="url(#ck1)"/><path d="M49 154C63.8333 132.116 101.4 101.478 133 154C117.667 141.348 79.4 123.636 49 154Z" fill="black"/><path d="M217 154C231.833 132.116 269.4 101.478 301 154C285.667 141.348 247.4 123.636 217 154Z" fill="black"/><defs><linearGradient id="ck0" x1="69.5" y1="161" x2="69.5" y2="229" gradientUnits="userSpaceOnUse"><stop stop-color="#FDA6B8"/><stop offset="1" stop-color="#D9D9D9" stop-opacity="0"/></linearGradient><linearGradient id="ck1" x1="275.5" y1="161" x2="275.5" y2="229" gradientUnits="userSpaceOnUse"><stop stop-color="#FDA6B8"/><stop offset="1" stop-color="#D9D9D9" stop-opacity="0"/></linearGradient></defs></svg>`,
 ];
 
-// ── render SVG → image via data URI ───────────────────────────────────────────
+// ── render SVG → PNG via WebView canvas ───────────────────────────────────────
 async function svgToImage(svgStr, size) {
   const svg = svgStr
     .replace('width="353"', `width="${size}"`)
     .replace('height="353"', `height="${size}"`);
-  const req = new Request("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg));
-  return await req.loadImage();
+  const wv = new WebView();
+  await wv.loadHTML("<html><body></body></html>");
+  const b64 = await wv.evaluateJavaScript(`
+    new Promise(function(resolve) {
+      var s = ${JSON.stringify(svg)};
+      var url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s);
+      var img = new Image();
+      img.onload = function() {
+        var c = document.createElement("canvas");
+        c.width = ${size}; c.height = ${size};
+        var x = c.getContext("2d");
+        x.fillStyle = "#F7F6F3";
+        x.fillRect(0, 0, ${size}, ${size});
+        x.drawImage(img, 0, 0, ${size}, ${size});
+        resolve(c.toDataURL("image/png").replace("data:image/png;base64,", ""));
+      };
+      img.onerror = function() { resolve(""); };
+      img.src = url;
+    })
+  `);
+  if (!b64) return null;
+  return Image.fromData(Data.fromBase64String(b64));
 }
 
 const isMedium = config.widgetFamily === "medium";
@@ -72,9 +92,11 @@ function renderSmall(w) {
 
   w.addSpacer();
 
-  const img = w.addImage(emojiImg);
-  img.centerAlignImage();
-  img.imageSize = new Size(emojiSize, emojiSize);
+  if (emojiImg) {
+    const img = w.addImage(emojiImg);
+    img.centerAlignImage();
+    img.imageSize = new Size(emojiSize, emojiSize);
+  }
 
   w.addSpacer(6);
 
@@ -95,9 +117,11 @@ function renderMedium(w) {
   left.size = new Size(emojiSize + 8, -1);
   left.addSpacer();
 
-  const img = left.addImage(emojiImg);
-  img.centerAlignImage();
-  img.imageSize = new Size(emojiSize, emojiSize);
+  if (emojiImg) {
+    const img = left.addImage(emojiImg);
+    img.centerAlignImage();
+    img.imageSize = new Size(emojiSize, emojiSize);
+  }
 
   left.addSpacer(4);
   const ds = left.addText(

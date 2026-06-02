@@ -877,7 +877,14 @@ function Hewn() {
   const [settings, setSettings] = useState(false);
   const [sheet, setSheet] = useState(null);
   const [shelfOpen, setShelfOpen] = useState(false);
-  const [shelf, setShelf] = useState(init && init.shelf ? init.shelf : []);
+  const [shelf, setShelf] = useState(() => {
+    const base = (init && init.shelf) ? init.shelf : [];
+    if (!sameDay && init && init.date && (init.p > 0 || init.m > 0)) {
+      const prev = base.find(e => e.date === init.date);
+      if (!prev) return [...base, { date: init.date, p: init.p || 0, m: init.m || 0, pTarget: init.pTarget || 40, mTarget: init.mTarget || 30, w: init.w || 0, note: init.note || "" }];
+    }
+    return base;
+  });
   const [appearance, setAppearance] = useState(init && init.appearance ? init.appearance : "light");
   const [phone, setPhone] = useState(typeof window !== "undefined" && window.innerWidth <= 480);
   const [pLog, setPLog] = useState(() => {

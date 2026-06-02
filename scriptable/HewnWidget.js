@@ -10,7 +10,7 @@ const FAINT  = new Color("#11111012");
 const family = config.widgetFamily;
 
 // ── data ────────────────────────────────────────────────────────────────────
-let saved = { p: 0, pTarget: 120, m: 0, mTarget: 30, date: "" };
+let saved = { p: 0, pTarget: 40, m: 0, mTarget: 30, date: "" };
 try { if (Keychain.contains(KEY)) saved = JSON.parse(Keychain.get(KEY)); } catch(e) {}
 
 const today  = new Date().toISOString().split("T")[0];

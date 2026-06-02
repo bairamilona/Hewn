@@ -188,14 +188,6 @@ function Block({ size = 9 }) {
 /* personal daily protein target from a short quiz.
    Rule-of-thumb: grams per kg of body weight, scaled by goal, nudged by age/sex.
    This is a sensible default, not medical advice — always editable. */
-function proteinTarget({ weight, age, sex, goal }) {
-  const w = Number(weight) || 70;
-  let perKg = goal === "build" ? 1.8 : goal === "lose" ? 1.6 : goal === "maintain" ? 1.4 : 1.2;
-  if (Number(age) >= 60) perKg += 0.15;        // older adults preserve muscle better with a bit more
-  let g = w * perKg;
-  if (sex === "female") g *= 0.95;             // slight average lean-mass adjustment
-  return Math.max(40, Math.round(g / 5) * 5);  // round to nearest 5g, floor 40
-}
 
 /* one little egg — full, half, or empty */
 function Egg({ fill = 1, size = 30, onClick }) {
@@ -455,61 +447,33 @@ function Stepper({ value, step, unit, onChange }) {
 
 /* ---- persistence helpers ----------------------------------------- */
 function todayStr() { const d = new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
-/* short quiz -> personal protein target. Used for onboarding and re-editable in settings. */
-function Quiz({ initial, onDone, onClose }) {
+/* first-run setup: user sets their own add-on protein goal */
+function Setup({ initial, onDone, onClose }) {
   const C = React.useContext(ThemeCtx);
-  const [sex, setSex] = useState(initial.sex || "female");
-  const [age, setAge] = useState(initial.age || 30);
-  const [weight, setWeight] = useState(initial.weight || 65);
-  const [height, setHeight] = useState(initial.height || 168);
-  const [goal, setGoal] = useState(initial.goal || "maintain");
-
-  const target = proteinTarget({ weight, age, sex, goal });
-  const stone = C.ink;
-  const seg = (val, cur, set, label) => (
-    <button onClick={() => set(val)} style={{ flex: 1, height: 46, borderRadius: 100, border: `0.3px solid ${cur === val ? C.ink : C.inkMute}`, cursor: "pointer",
-      background: cur === val ? stone : "transparent", color: cur === val ? C.base : C.ink,
-      fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14, fontWeight: 500, transition: "background 320ms cubic-bezier(.25,.1,.25,1), color 320ms ease" }}>{label}</button>
-  );
-  let fi = 0;
-  const row = (label, node) => {
-    const delay = (fi++ * 90) + 120;
-    return (
-      <div style={{ marginBottom: 20, opacity: 0, animation: "hewnRise 620ms cubic-bezier(.25,.1,.25,1) forwards", animationDelay: delay + "ms" }}>
-        <div style={{ fontSize: 11.5, letterSpacing: "0.16em", textTransform: "uppercase", color: C.inkMute, marginBottom: 9 }}>{label}</div>
-        {node}
-      </div>
-    );
-  };
-  const numField = (val, set, unit, lo, hi) => (
-    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-      <input type="range" min={lo} max={hi} value={val} onChange={(e) => set(Number(e.target.value))}
-        style={{ flex: 1, accentColor: stone, height: 2 }} />
-      <span style={{ fontFamily: "'Fraunces', serif", fontSize: 19, minWidth: 64, textAlign: "right" }}>{val} {unit}</span>
-    </div>
-  );
+  const [val, setVal] = useState(initial || 40);
 
   return (
-    <div style={{ position: "absolute", inset: 0, zIndex: 8, background: C.base, padding: "calc(env(safe-area-inset-top) + 34px) 28px calc(env(safe-area-inset-bottom) + 28px)", overflowY: "auto", animation: "hewnFadeSlow 700ms ease" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18, opacity: 0, animation: "hewnFadeSlow 700ms ease forwards", animationDelay: "40ms" }}>
-        <span style={{ fontFamily: "'Fraunces', serif", fontSize: 25, fontWeight: 400 }}>Your protein</span>
+    <div style={{ position: "absolute", inset: 0, zIndex: 8, background: C.base, padding: "calc(env(safe-area-inset-top) + 44px) 28px calc(env(safe-area-inset-bottom) + 28px)", display: "flex", flexDirection: "column", animation: "hewnFadeSlow 700ms ease" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, opacity: 0, animation: "hewnFadeSlow 700ms ease forwards", animationDelay: "40ms" }}>
+        <span style={{ fontFamily: "'Fraunces', serif", fontSize: 25, fontWeight: 400 }}>Add-on goal</span>
         {onClose && <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute }}><IX size={18} /></button>}
       </div>
-      <p style={{ fontSize: 13.5, color: C.inkMute, lineHeight: 1.55, marginTop: 0, marginBottom: 28, opacity: 0, animation: "hewnFadeSlow 700ms ease forwards", animationDelay: "90ms" }}>
-        A few details set your daily amount. A sensible starting point, not medical advice, and editable anytime.
+      <p style={{ fontSize: 13.5, color: C.inkMute, lineHeight: 1.6, marginTop: 0, marginBottom: 0, opacity: 0, animation: "hewnFadeSlow 700ms ease forwards", animationDelay: "100ms" }}>
+        How much extra protein do you want to add on top of your usual meals each day?
       </p>
-      {row("Sex", <div style={{ display: "flex", gap: 8 }}>{seg("female", sex, setSex, "Female")}{seg("male", sex, setSex, "Male")}</div>)}
-      {row("Age", numField(age, setAge, "", 16, 90))}
-      {row("Weight", numField(weight, setWeight, "kg", 40, 140))}
-      {row("Height", numField(height, setHeight, "cm", 140, 210))}
-      {row("Goal", <div style={{ display: "flex", gap: 8 }}>{seg("maintain", goal, setGoal, "Maintain")}{seg("lose", goal, setGoal, "Lean")}{seg("build", goal, setGoal, "Build")}</div>)}
-
-      <div style={{ textAlign: "center", margin: "14px 0 24px", opacity: 0, animation: "hewnFadeSlow 800ms ease forwards", animationDelay: "640ms" }}>
-        <div style={{ fontSize: 11.5, letterSpacing: "0.16em", textTransform: "uppercase", color: C.inkMute, marginBottom: 6 }}>Daily protein</div>
-        <div style={{ fontFamily: "'Fraunces', serif", fontSize: 44, fontWeight: 400, transition: "all 400ms ease" }}>{target} <span style={{ fontSize: 22, color: C.inkMute }}>g</span></div>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 28, opacity: 0, animation: "hewnFadeSlow 700ms ease forwards", animationDelay: "220ms" }}>
+        <div style={{ textAlign: "center" }}>
+          <span style={{ fontFamily: "'Fraunces', serif", fontSize: 64, fontWeight: 400 }}>{val}</span>
+          <span style={{ fontSize: 22, color: C.inkMute, marginLeft: 6 }}>g</span>
+        </div>
+        <input type="range" min={10} max={120} step={5} value={val} onChange={e => setVal(Number(e.target.value))}
+          style={{ width: "100%", accentColor: C.ink, height: 2 }} />
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: C.inkMute }}>
+          <span>10 g</span><span>120 g</span>
+        </div>
       </div>
-      <button onClick={() => onDone({ sex, age, weight, height, goal }, target)}
-        style={{ width: "100%", height: 56, borderRadius: 16, border: "none", cursor: "pointer", background: stone, color: C.base, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 16, fontWeight: 600, opacity: 0, animation: "hewnFadeSlow 800ms ease forwards", animationDelay: "720ms" }}>
+      <button onClick={() => onDone(val)}
+        style={{ width: "100%", height: 56, borderRadius: 16, border: "none", cursor: "pointer", background: C.ink, color: C.base, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 16, fontWeight: 600, opacity: 0, animation: "hewnFadeSlow 800ms ease forwards", animationDelay: "360ms" }}>
         {onClose ? "Save" : "Begin"}
       </button>
     </div>
@@ -752,11 +716,10 @@ function Celebration({ id, inkColor }) {
 function Hewn() {
   const init = loadState();
   const sameDay = init && init.date === todayStr();
-  const [pTarget, setPTarget] = useState(init && init.pTarget ? init.pTarget : 100);
+  const [pTarget, setPTarget] = useState(init && init.pTarget ? init.pTarget : 40);
   const [mTarget, setMTarget] = useState(init && init.mTarget ? init.mTarget : 30);
-  const [profile, setProfile] = useState(init && init.profile ? init.profile : null);
-  const [onboard, setOnboard] = useState(!(init && init.profile));
-  const [editQuiz, setEditQuiz] = useState(false);
+  const [onboard, setOnboard] = useState(!(init && init.pTarget));
+  const [editSetup, setEditSetup] = useState(false);
   const [pTo, setPTo] = useState(sameDay ? (init.p || 0) : 0);
   const [mTo, setMTo] = useState(sameDay ? (init.m || 0) : 0);
   const [p, setP] = useState(sameDay ? (init.p || 0) : 0);
@@ -833,8 +796,8 @@ function Hewn() {
 
   // persist
   useEffect(() => {
-    localStorage.setItem("hewn-v1", JSON.stringify({ date: todayStr(), p: pTo, m: mTo, pTarget, mTarget, profile, shelf, appearance, pLog, mLog, w: wTo, note }));
-  }, [pTo, mTo, pTarget, mTarget, profile, shelf, appearance, pLog, mLog, wTo, note]);
+    localStorage.setItem("hewn-v1", JSON.stringify({ date: todayStr(), p: pTo, m: mTo, pTarget, mTarget, shelf, appearance, pLog, mLog, w: wTo, note }));
+  }, [pTo, mTo, pTarget, mTarget, shelf, appearance, pLog, mLog, wTo, note]);
 
   // archive + celebrate when day completes
   useEffect(() => {
@@ -958,7 +921,7 @@ function Hewn() {
         </button>
 
         <div style={{ marginTop: 14 }}>
-          <Metric name="Protein" value={p} target={pTarget} unit="g" presets={PROTEIN} onAdd={addP} done={pDone} onMore={() => setSheet("protein")} onLogOpen={() => setLogSheet("protein")} block logCount={pLogCount} />
+          <Metric name="Protein +" value={p} target={pTarget} unit="g" presets={PROTEIN} onAdd={addP} done={pDone} onMore={() => setSheet("protein")} onLogOpen={() => setLogSheet("protein")} block logCount={pLogCount} />
         </div>
 
         <div style={{ flex: 1, minHeight: 0 }}>
@@ -1011,9 +974,9 @@ function Hewn() {
         {logSheet === "movement" && <LogSheet title="Movement today" unit="min" entries={mLog} onAdd={addM} onRemove={removeM} onClose={() => setLogSheet(null)} done={mDone} />}
         {shelfOpen && <ShelfView shelf={shelf} todayP={pTo} todayM={mTo} todayPTarget={pTarget} todayMTarget={mTarget} todayW={wTo} todayNote={note} onClose={() => setShelfOpen(false)} />}
 
-        {onboard && <Quiz initial={profile || {}} onDone={(prof, t) => { setProfile(prof); setPTarget(t); setOnboard(false); }} />}
+        {onboard && <Setup initial={pTarget} onDone={(t) => { setPTarget(t); setOnboard(false); }} />}
         <Celebration id={celebKey} inkColor={activeC.ink} />
-        {editQuiz && <Quiz initial={profile || {}} onClose={() => setEditQuiz(false)} onDone={(prof, t) => { setProfile(prof); setPTarget(t); setEditQuiz(false); }} />}
+        {editSetup && <Setup initial={pTarget} onClose={() => setEditSetup(false)} onDone={(t) => { setPTarget(t); setEditSetup(false); }} />}
 
         {toast && (
           <div style={{ position: "absolute", left: "50%", bottom: 96, transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 12, padding: "8px 8px 8px 18px", background: activeC.ink + "ec", color: activeC.base, borderRadius: 100, zIndex: 4, fontSize: 13.5, animation: "hewnFade 240ms ease", backdropFilter: "blur(6px)", maxWidth: "88%" }}>
@@ -1030,8 +993,8 @@ function Hewn() {
               <button onClick={() => setSettings(false)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute }}><IX size={18} /></button>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
-              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>Protein</span>
-              <Stepper value={pTarget} step={5} unit="g" onChange={(d) => setPTarget((v) => Math.max(20, v + d))} />
+              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>Protein +</span>
+              <Stepper value={pTarget} step={5} unit="g" onChange={(d) => setPTarget((v) => Math.max(10, v + d))} />
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>Movement</span>
@@ -1052,11 +1015,7 @@ function Hewn() {
                 ))}
               </div>
             </div>
-            <button onClick={() => { setSettings(false); setEditQuiz(true); }}
-              style={{ marginTop: 22, width: "100%", height: 48, borderRadius: 14, border: "none", cursor: "pointer", background: activeC.inkFaint, color: activeC.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14.5 }}>
-              Recalculate protein from quiz
-            </button>
-            <div style={{ marginTop: 20, fontSize: 12.5, color: activeC.inkMute, lineHeight: 1.5 }}>A gentle reminder, off by default. These are set — change them anytime.</div>
+            <div style={{ marginTop: 20, fontSize: 12.5, color: activeC.inkMute, lineHeight: 1.5 }}>Protein + is your add-on target on top of regular meals. Change anytime.</div>
           </div>
         </>)}
       </div>

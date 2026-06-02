@@ -41,23 +41,21 @@ async function svgToImage(svgStr, size) {
   const wv = new WebView();
   await wv.loadHTML("<html><body></body></html>");
   const b64 = await wv.evaluateJavaScript(`
-    new Promise(function(resolve) {
-      var s = ${JSON.stringify(svg)};
-      var url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s);
-      var img = new Image();
-      img.onload = function() {
-        var c = document.createElement("canvas");
-        c.width = ${size}; c.height = ${size};
-        var x = c.getContext("2d");
-        x.fillStyle = "#F7F6F3";
-        x.fillRect(0, 0, ${size}, ${size});
-        x.drawImage(img, 0, 0, ${size}, ${size});
-        resolve(c.toDataURL("image/png").replace("data:image/png;base64,", ""));
-      };
-      img.onerror = function() { resolve(""); };
-      img.src = url;
-    })
-  `);
+    var s = ${JSON.stringify(svg)};
+    var url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s);
+    var img = new Image();
+    img.onload = function() {
+      var c = document.createElement("canvas");
+      c.width = ${size}; c.height = ${size};
+      var x = c.getContext("2d");
+      x.fillStyle = "#F7F6F3";
+      x.fillRect(0, 0, ${size}, ${size});
+      x.drawImage(img, 0, 0, ${size}, ${size});
+      completion(c.toDataURL("image/png").replace("data:image/png;base64,", ""));
+    };
+    img.onerror = function() { completion(""); };
+    img.src = url;
+  `, true);
   if (!b64) return null;
   return Image.fromData(Data.fromBase64String(b64));
 }

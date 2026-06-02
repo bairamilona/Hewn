@@ -662,6 +662,67 @@ function LogSheet({ title, unit, entries, onAdd, onRemove, onClose, done }) {
 /* ---- persistence helpers ----------------------------------------- */
 function loadState() { try { return JSON.parse(localStorage.getItem("hewn-v1") || "null"); } catch (e) { return null; } }
 
+/* ---- celebration burst -------------------------------------------- */
+function Celebration({ id, inkColor }) {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    if (!id) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const W = canvas.width  = window.innerWidth;
+    const H = canvas.height = window.innerHeight;
+    const ctx = canvas.getContext("2d");
+
+    // burst origin: horizontal center, ~45% down (where emoji lives)
+    const cx = W / 2, cy = H * 0.44;
+
+    const particles = Array.from({ length: 42 }, (_, i) => {
+      const angle = (i / 42) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+      const speed = 2.5 + Math.random() * 6;
+      return {
+        x: cx, y: cy,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 1.5,
+        char: Math.random() < 0.55 ? "+" : "○",
+        alpha: 0.9 + Math.random() * 0.1,
+        size: 9 + Math.random() * 9,
+        decay: 0.016 + Math.random() * 0.014,
+      };
+    });
+
+    navigator.vibrate?.([20, 40, 20, 40, 60]);
+
+    let raf;
+    function frame() {
+      ctx.clearRect(0, 0, W, H);
+      let alive = false;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      for (const p of particles) {
+        if (p.alpha <= 0) continue;
+        alive = true;
+        p.x  += p.vx;
+        p.y  += p.vy;
+        p.vy += 0.18;   // gravity
+        p.vx *= 0.975;  // air drag
+        p.alpha -= p.decay;
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.fillStyle = inkColor;
+        ctx.font = `${Math.round(p.size)}px monospace`;
+        ctx.fillText(p.char, p.x, p.y);
+      }
+      ctx.globalAlpha = 1;
+      if (alive) raf = requestAnimationFrame(frame);
+      else ctx.clearRect(0, 0, W, H);
+    }
+    raf = requestAnimationFrame(frame);
+    return () => { cancelAnimationFrame(raf); ctx.clearRect(0, 0, W, H); };
+  }, [id]);
+
+  return <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 200 }} />;
+}
+
 /* ---- app ---------------------------------------------------------- */
 function Hewn() {
   const init = loadState();
@@ -693,6 +754,7 @@ function Hewn() {
     return [];
   });
   const [logSheet, setLogSheet] = useState(null);
+  const [celebKey, setCelebKey] = useState(0);
   const [pLogCount, setPLogCount] = useState(0);
   const [mLogCount, setMLogCount] = useState(0);
   const undo = useRef([]); const toastT = useRef(null); const raf = useRef(null);
@@ -744,11 +806,12 @@ function Hewn() {
     localStorage.setItem("hewn-v1", JSON.stringify({ date: todayStr(), p: pTo, m: mTo, pTarget, mTarget, profile, shelf, appearance, pLog, mLog }));
   }, [pTo, mTo, pTarget, mTarget, profile, shelf, appearance, pLog, mLog]);
 
-  // archive today when day completes
+  // archive + celebrate when day completes
   useEffect(() => {
     if (complete && !prevComplete.current) {
       const today = todayStr();
       setShelf(prev => [...prev.filter(e => e.date !== today), { date: today, p: pTo, m: mTo, pTarget, mTarget }]);
+      setCelebKey(k => k + 1);
     }
     prevComplete.current = complete;
   }, [complete]);
@@ -896,6 +959,7 @@ function Hewn() {
         {shelfOpen && <ShelfView shelf={shelf} todayP={pTo} todayM={mTo} todayPTarget={pTarget} todayMTarget={mTarget} onClose={() => setShelfOpen(false)} />}
 
         {onboard && <Quiz initial={profile || {}} onDone={(prof, t) => { setProfile(prof); setPTarget(t); setOnboard(false); }} />}
+        <Celebration id={celebKey} inkColor={activeC.ink} />
         {editQuiz && <Quiz initial={profile || {}} onClose={() => setEditQuiz(false)} onDone={(prof, t) => { setProfile(prof); setPTarget(t); setEditQuiz(false); }} />}
 
         {toast && (

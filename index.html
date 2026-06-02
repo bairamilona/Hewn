@@ -66,17 +66,121 @@ const IPlus = (p) => <Ico {...p}><path d="M12 5v14"/><path d="M5 12h14"/></Ico>;
 const IX = (p) => <Ico {...p}><path d="M18 6 6 18"/><path d="M6 6l12 12"/></Ico>;
 const IChevUp = (p) => <Ico {...p}><polyline points="18 15 12 9 6 15" /></Ico>;
 
-/* ---- emoji visualisation ------------------------------------------ */
-function EmojiVis({ pPct, mPct }) {
+/* ---- SVG emoji data ----------------------------------------------- */
+const EMOJI_SVGS = [
+  `<svg width="353" height="353" viewBox="0 0 353 353" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="176.5" cy="176.5" r="176.5" fill="#D9D9D9"/><path d="M114 261C137.333 253.454 195.2 242.889 240 261H114Z" fill="black"/><rect x="102.574" y="132" width="77.0315" height="12.1253" transform="rotate(45 102.574 132)" fill="black"/><rect x="211.574" y="132" width="77.0315" height="12.1253" transform="rotate(45 211.574 132)" fill="black"/><rect x="157.045" y="141.079" width="77.0315" height="12.1253" transform="rotate(135 157.045 141.079)" fill="black"/><rect x="266.045" y="141.079" width="77.0315" height="12.1253" transform="rotate(135 266.045 141.079)" fill="black"/></svg>`,
+  `<svg width="353" height="353" viewBox="0 0 353 353" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="176.5" cy="176.5" r="176.5" fill="#D9D9D9"/><path d="M96.5 261.5C110.333 227.5 161.9 169.7 257.5 210.5C224.167 204.166 145.3 205.5 96.5 261.5Z" fill="black"/><path d="M162 132C158.889 156.813 137.913 176 112.5 176C87.0873 176 66.1114 156.813 63 132H162Z" fill="black"/><path d="M307 132C303.889 156.813 282.913 176 257.5 176C232.087 176 211.111 156.813 208 132H307Z" fill="black"/></svg>`,
+  `<svg width="353" height="353" viewBox="0 0 353 353" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="176.5" cy="176.5" r="176.5" fill="#D9D9D9"/><path d="M224 251C190.222 232.889 146.593 243.454 129 251C129 251 157.75 258 176.5 258C195.25 258 224 251 224 251Z" fill="black"/><path d="M234.5 120C247.479 120 258 142.386 258 170C258 176.481 257.42 182.675 256.365 188.358C250.271 181.853 242.701 178 234.5 178C226.299 178 218.728 181.853 212.634 188.358C211.579 182.675 211 176.481 211 170C211 142.386 221.521 120 234.5 120Z" fill="black"/><path d="M118.5 120C131.479 120 142 142.386 142 170C142 176.481 141.42 182.675 140.365 188.358C134.271 181.853 126.701 178 118.5 178C110.299 178 102.728 181.853 96.6338 188.358C95.5788 182.675 95 176.481 95 170C95 142.386 105.521 120 118.5 120Z" fill="black"/></svg>`,
+  `<svg width="353" height="353" viewBox="0 0 353 353" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="176.5" cy="176.5" r="176.5" fill="#D9D9D9"/><path d="M111 251C134.333 263.074 192.2 279.978 237 251H111Z" fill="black"/><ellipse cx="119.5" cy="146" rx="23.5" ry="50" fill="black"/><ellipse cx="235.5" cy="146" rx="23.5" ry="50" fill="black"/></svg>`,
+  `<svg width="353" height="353" viewBox="0 0 353 353" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="176.5" cy="176.5" r="176.5" fill="#D9D9D9"/><path d="M63 217C100.167 254.333 197.8 306.6 291 217C257.333 265.667 164.6 333.8 63 217Z" fill="black"/><ellipse cx="69.5" cy="195" rx="45.5" ry="34" fill="url(#ck0)"/><ellipse cx="275.5" cy="195" rx="45.5" ry="34" fill="url(#ck1)"/><path d="M49 154C63.8333 132.116 101.4 101.478 133 154C117.667 141.348 79.4 123.636 49 154Z" fill="black"/><path d="M217 154C231.833 132.116 269.4 101.478 301 154C285.667 141.348 247.4 123.636 217 154Z" fill="black"/><defs><linearGradient id="ck0" x1="69.5" y1="161" x2="69.5" y2="229" gradientUnits="userSpaceOnUse"><stop stop-color="#FDA6B8"/><stop offset="1" stop-color="#D9D9D9" stop-opacity="0"/></linearGradient><linearGradient id="ck1" x1="275.5" y1="161" x2="275.5" y2="229" gradientUnits="userSpaceOnUse"><stop stop-color="#FDA6B8"/><stop offset="1" stop-color="#D9D9D9" stop-opacity="0"/></linearGradient></defs></svg>`,
+];
+
+const BAYER8 = [
+   0, 32,  8, 40,  2, 34, 10, 42,
+  48, 16, 56, 24, 50, 18, 58, 26,
+  12, 44,  4, 36, 14, 46,  6, 38,
+  60, 28, 52, 20, 62, 30, 54, 22,
+   3, 35, 11, 43,  1, 33,  9, 41,
+  51, 19, 59, 27, 49, 17, 57, 25,
+  15, 47,  7, 39, 13, 45,  5, 37,
+  63, 31, 55, 23, 61, 29, 53, 21,
+];
+const DITH_G = 64;
+
+function svgGrayMap(svgStr) {
+  return new Promise(resolve => {
+    const url = URL.createObjectURL(new Blob([svgStr], { type: 'image/svg+xml' }));
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = c.height = DITH_G;
+      const cx = c.getContext('2d');
+      cx.fillStyle = '#fff'; cx.fillRect(0, 0, DITH_G, DITH_G);
+      cx.drawImage(img, 0, 0, DITH_G, DITH_G);
+      const px = cx.getImageData(0, 0, DITH_G, DITH_G).data;
+      URL.revokeObjectURL(url);
+      const m = new Float32Array(DITH_G * DITH_G);
+      for (let i = 0; i < m.length; i++) {
+        const a = px[i*4+3] / 255;
+        const lum = (0.299*px[i*4] + 0.587*px[i*4+1] + 0.114*px[i*4+2]) / 255;
+        m[i] = lum * a + (1 - a);
+      }
+      resolve(m);
+    };
+    img.onerror = () => resolve(new Float32Array(DITH_G * DITH_G).fill(1));
+    img.src = url;
+  });
+}
+
+function DitheredEmoji({ pPct, mPct, inkColor }) {
   const avg = (pPct + mPct) / 2;
-  const idx = Math.min(5, Math.floor(avg * 6));
-  const src = `assets/emojis/state${idx + 1}.png`;
-  return (
-    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <img key={idx} src={src} alt="" draggable={false}
-        style={{ width: 170, height: 170, objectFit: "contain", animation: "hewnEmoji 420ms cubic-bezier(0.34,1.56,0.64,1)" }} />
-    </div>
-  );
+  const idx = Math.min(4, Math.floor(avg * 5));
+  const canvasRef = useRef(null);
+  const anim = useRef({ maps: null, cur: idx, tgt: idx, prog: 1, tStart: 0, phase: 0, t0: 0, raf: null, ink: inkColor });
+
+  useEffect(() => { anim.current.ink = inkColor; }, [inkColor]);
+
+  useEffect(() => {
+    Promise.all(EMOJI_SVGS.map(svgGrayMap)).then(maps => {
+      anim.current.maps = maps;
+      anim.current.cur = anim.current.tgt;
+    });
+  }, []);
+
+  useEffect(() => {
+    const s = anim.current;
+    if (s.tgt === idx) return;
+    if (s.prog < 1) s.cur = s.tgt;
+    s.tgt = idx;
+    s.prog = 0;
+    s.tStart = performance.now();
+  }, [idx]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const s = anim.current;
+    const G = DITH_G;
+
+    function frame(now) {
+      s.raf = requestAnimationFrame(frame);
+      if (!s.maps) return;
+      const dt = Math.min((now - s.t0) / 1000, 0.05);
+      s.t0 = now;
+      s.phase += dt * 0.85;
+      if (s.prog < 1) {
+        s.prog = Math.min(1, (now - s.tStart) / 850);
+        if (s.prog >= 1) s.cur = s.tgt;
+      }
+      const drift = Math.sin(s.phase) * 0.05;
+      const p = s.prog;
+      const mapA = s.maps[s.cur], mapB = s.maps[s.tgt];
+      const ink = s.ink;
+      const inkR = parseInt(ink.slice(1,3),16), inkG2 = parseInt(ink.slice(3,5),16), inkB2 = parseInt(ink.slice(5,7),16);
+      const id = ctx.createImageData(G, G);
+      const d32 = new Uint32Array(id.data.buffer);
+      const inkPx = (255 << 24) | (inkB2 << 16) | (inkG2 << 8) | inkR;
+      for (let y = 0; y < G; y++) {
+        for (let x = 0; x < G; x++) {
+          const i = y * G + x;
+          const bayer = BAYER8[(y & 7) * 8 + (x & 7)] / 64;
+          // Bayer-ordered dissolve: each pixel's local progress leads/lags by its bayer position
+          const lp = p < 1 ? Math.max(0, Math.min(1, (p - bayer * 0.6) / 0.4)) : 1;
+          const lum = mapA[i] + (mapB[i] - mapA[i]) * lp;
+          if (lum < bayer + drift) d32[i] = inkPx;
+        }
+      }
+      ctx.putImageData(id, 0, 0);
+    }
+
+    s.raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(s.raf);
+  }, []);
+
+  const SIZE = Math.min(310, window.innerWidth - 44);
+  return <canvas ref={canvasRef} width={DITH_G} height={DITH_G}
+    style={{ display: 'block', margin: '0 auto', width: SIZE, height: SIZE, imageRendering: 'pixelated' }} />;
 }
 
 
@@ -483,11 +587,11 @@ function Setup({ initial, onDone, onClose }) {
 /* ---- mini emoji for shelf thumbnails ------------------------------ */
 function MiniEmoji({ polish, definition }) {
   const avg = (polish + definition) / 2;
-  const idx = Math.min(5, Math.floor(avg * 6)) + 1;
+  const idx = Math.min(4, Math.floor(avg * 5));
+  const src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(EMOJI_SVGS[idx]);
   return (
     <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <img src={`assets/emojis/state${idx}.png`} alt=""
-        style={{ width: 46, height: 46, objectFit: "contain" }} />
+      <img src={src} alt="" style={{ width: 46, height: 46, objectFit: "contain" }} />
     </div>
   );
 }
@@ -925,7 +1029,7 @@ function Hewn() {
         </div>
 
         <div style={{ flex: 1, minHeight: 0 }}>
-          <EmojiVis pPct={Math.min(1, pTo/pTarget)} mPct={Math.min(1, mTo/mTarget)} />
+          <DitheredEmoji pPct={Math.min(1, pTo/pTarget)} mPct={Math.min(1, mTo/mTarget)} inkColor={activeC.ink} />
         </div>
 
         <div style={{ textAlign: "center", marginBottom: 8, minHeight: 28 }}>

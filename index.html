@@ -99,16 +99,25 @@ function svgColorMaps(svgStr) {
       cx.fillStyle = '#fff'; cx.fillRect(0, 0, DITH_G, DITH_G);
       cx.drawImage(img, 0, 0, DITH_G, DITH_G);
       const px = cx.getImageData(0, 0, DITH_G, DITH_G).data;
+
+      // Second pass on transparent canvas to get raw pre-blend colors for pink detection
+      const c2 = document.createElement('canvas');
+      c2.width = c2.height = DITH_G;
+      const cx2 = c2.getContext('2d');
+      cx2.drawImage(img, 0, 0, DITH_G, DITH_G);
+      const px2 = cx2.getImageData(0, 0, DITH_G, DITH_G).data;
+
       URL.revokeObjectURL(url);
       const gray = new Float32Array(DITH_G * DITH_G);
       const pink = new Float32Array(DITH_G * DITH_G);
       for (let i = 0; i < gray.length; i++) {
-        const r = px[i*4], g = px[i*4+1], b = px[i*4+2], a = px[i*4+3] / 255;
-        const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+        const a = px[i*4+3] / 255;
+        const lum = (0.299*px[i*4] + 0.587*px[i*4+1] + 0.114*px[i*4+2]) / 255;
         gray[i] = lum * a + (1 - a);
-        // Detect pink: red dominant, blue present (not orange), bright, visible
-        if (r > 200 && r > g + 40 && b > 140 && a > 0.15) {
-          pink[i] = (1 - lum) * a;
+        // Use raw (pre-blend) color for pink detection so faded gradient isn't washed out
+        const r2 = px2[i*4], g2 = px2[i*4+1], b2 = px2[i*4+2], a2 = px2[i*4+3] / 255;
+        if (r2 > 200 && r2 > g2 + 35 && b2 > 130 && a2 > 0.1) {
+          pink[i] = a2; // use alpha as intensity so gradient fades naturally
         }
       }
       resolve({ gray, pink });
@@ -193,7 +202,9 @@ function DitheredEmoji({ pPct, mPct, inkColor }) {
           const pB = pinkMapB ? pinkMapB[i] : 0;
           const pinkV = pA + (pB - pA) * lp;
           if (pinkV > 0.08) {
-            pinkCells.push(x, y, ch); // defer to second pass
+            // Boost density so cheeks show heavier characters, not just dots
+            const pinkLevel = Math.max(0, Math.min(N - 1, Math.floor((Math.max(darkness, pinkV * 0.55) + drift) * N + bayer - 0.5)));
+            pinkCells.push(x, y, DITH_CHARS[pinkLevel]);
           } else {
             ctx.fillText(ch, (x + 0.5) * cell, (y + 0.5) * cell);
           }
@@ -201,7 +212,7 @@ function DitheredEmoji({ pPct, mPct, inkColor }) {
       }
       // Second pass: pink cheek symbols
       if (pinkCells.length > 0) {
-        ctx.fillStyle = '#FDA6B8';
+        ctx.fillStyle = '#F0608A';
         for (let k = 0; k < pinkCells.length; k += 3) {
           ctx.fillText(pinkCells[k+2], (pinkCells[k] + 0.5) * cell, (pinkCells[k+1] + 0.5) * cell);
         }

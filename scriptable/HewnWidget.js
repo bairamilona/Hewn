@@ -1,7 +1,7 @@
 // Hewn Widget — small & medium
 // Place in Scriptable, choose "HewnWidget" when adding the widget
 
-const BASE   = "https://ewn-mauve.vercel.app";
+const BASE   = "https://hewn-mauve.vercel.app";
 const KEY    = "hewn_data";
 const BG     = new Color("#F7F6F3");
 const INK    = new Color("#111110");

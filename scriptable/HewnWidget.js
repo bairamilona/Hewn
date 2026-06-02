@@ -33,15 +33,13 @@ const SVGS = [
   `<svg width="353" height="353" viewBox="0 0 353 353" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="176.5" cy="176.5" r="176.5" fill="#D9D9D9"/><path d="M63 217C100.167 254.333 197.8 306.6 291 217C257.333 265.667 164.6 333.8 63 217Z" fill="black"/><ellipse cx="69.5" cy="195" rx="45.5" ry="34" fill="url(#ck0)"/><ellipse cx="275.5" cy="195" rx="45.5" ry="34" fill="url(#ck1)"/><path d="M49 154C63.8333 132.116 101.4 101.478 133 154C117.667 141.348 79.4 123.636 49 154Z" fill="black"/><path d="M217 154C231.833 132.116 269.4 101.478 301 154C285.667 141.348 247.4 123.636 217 154Z" fill="black"/><defs><linearGradient id="ck0" x1="69.5" y1="161" x2="69.5" y2="229" gradientUnits="userSpaceOnUse"><stop stop-color="#FDA6B8"/><stop offset="1" stop-color="#D9D9D9" stop-opacity="0"/></linearGradient><linearGradient id="ck1" x1="275.5" y1="161" x2="275.5" y2="229" gradientUnits="userSpaceOnUse"><stop stop-color="#FDA6B8"/><stop offset="1" stop-color="#D9D9D9" stop-opacity="0"/></linearGradient></defs></svg>`,
 ];
 
-// ── render SVG → image via WebView ────────────────────────────────────────────
+// ── render SVG → image via data URI ───────────────────────────────────────────
 async function svgToImage(svgStr, size) {
   const svg = svgStr
     .replace('width="353"', `width="${size}"`)
     .replace('height="353"', `height="${size}"`);
-  const html = `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#F7F6F3;width:${size}px;height:${size}px;overflow:hidden">${svg}</body></html>`;
-  const wv = new WebView();
-  await wv.loadHTML(html);
-  return await wv.getSnapshot();
+  const req = new Request("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg));
+  return await req.loadImage();
 }
 
 const isMedium = config.widgetFamily === "medium";

@@ -529,7 +529,7 @@ function MiniEmoji({ polish, definition }) {
 }
 
 /* ---- shelf view --------------------------------------------------- */
-function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, onClose }) {
+function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, todayNote, onClose }) {
   const C = React.useContext(ThemeCtx);
   const [selected, setSelected] = useState(null);
 
@@ -540,7 +540,7 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, onClose 
     const ds = d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate();
     const isToday = i === 0;
     const entry = isToday
-      ? { date: ds, p: todayP, m: todayM, pTarget: todayPTarget, mTarget: todayMTarget }
+      ? { date: ds, p: todayP, m: todayM, pTarget: todayPTarget, mTarget: todayMTarget, w: todayW, note: todayNote }
       : (shelf || []).find(e => e.date === ds);
     const dow = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()];
     days.push({ ds, entry, isToday, dow, d });
@@ -597,6 +597,12 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, onClose 
               <span style={{ color: C.ink }}>{Math.round(sel.entry.m)}</span>
               <span style={{ color: C.inkMute, fontSize: 18 }}> / {sel.entry.mTarget || 30} min movement</span>
             </div>
+            {sel.entry.w > 0 && (
+              <div style={{ fontSize: 13, color: C.inkMute, marginTop: 8 }}>{sel.entry.w} glasses of water</div>
+            )}
+            {sel.entry.note && (
+              <div style={{ fontSize: 13, color: C.inkMute, marginTop: 6, fontStyle: "italic" }}>"{sel.entry.note}"</div>
+            )}
           </div>
         ) : (
           <div style={{ color: C.inkMute, fontSize: 13, fontFamily: "'Hanken Grotesk', sans-serif", lineHeight: 1.6 }}>
@@ -662,7 +668,26 @@ function LogSheet({ title, unit, entries, onAdd, onRemove, onClose, done }) {
 /* ---- persistence helpers ----------------------------------------- */
 function loadState() { try { return JSON.parse(localStorage.getItem("hewn-v1") || "null"); } catch (e) { return null; } }
 
-/* ---- celebration burst -------------------------------------------- */
+/* ---- water row ---------------------------------------------------- */
+function WaterRow({ value, target, onAdd, onRemove }) {
+  const C = React.useContext(ThemeCtx);
+  const glasses = target || 8;
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0 2px" }}>
+      <span style={{ fontSize: 10, color: C.inkMute, letterSpacing: "0.06em", flexShrink: 0 }}>WATER</span>
+      <div style={{ flex: 1, display: "flex", gap: 2 }}>
+        {Array.from({ length: glasses }, (_, i) => (
+          <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i < value ? C.ink : C.inkFaint, transition: "background 280ms" }} />
+        ))}
+      </div>
+      <span style={{ fontSize: 10, color: C.inkMute, minWidth: 28, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{value}/{glasses}</span>
+      <button onClick={() => onAdd()} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute, fontSize: 16, lineHeight: 1, padding: "0 2px" }}>+</button>
+      {value > 0 && <button onClick={() => onRemove()} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute, fontSize: 16, lineHeight: 1, padding: "0 2px" }}>−</button>}
+    </div>
+  );
+}
+
+
 function Celebration({ id, inkColor }) {
   const canvasRef = useRef(null);
 
@@ -757,8 +782,13 @@ function Hewn() {
   const [celebKey, setCelebKey] = useState(0);
   const [pLogCount, setPLogCount] = useState(0);
   const [mLogCount, setMLogCount] = useState(0);
+  const [wTo, setWTo] = useState(sameDay ? (init.w || 0) : 0);
+  const wTarget = 8;
+  const [note, setNote] = useState(sameDay ? (init.note || "") : "");
+  const [noteEditing, setNoteEditing] = useState(false);
+  const [newDayConfirm, setNewDayConfirm] = useState(false);
   const undo = useRef([]); const toastT = useRef(null); const raf = useRef(null);
-  const prevComplete = useRef(false);
+  const prevComplete = useRef(false); const newDayTimer = useRef(null);
 
   const activeC = appearance === "dark" || (appearance === "system" && typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches) ? DARK : LIGHT;
 
@@ -803,14 +833,14 @@ function Hewn() {
 
   // persist
   useEffect(() => {
-    localStorage.setItem("hewn-v1", JSON.stringify({ date: todayStr(), p: pTo, m: mTo, pTarget, mTarget, profile, shelf, appearance, pLog, mLog }));
-  }, [pTo, mTo, pTarget, mTarget, profile, shelf, appearance, pLog, mLog]);
+    localStorage.setItem("hewn-v1", JSON.stringify({ date: todayStr(), p: pTo, m: mTo, pTarget, mTarget, profile, shelf, appearance, pLog, mLog, w: wTo, note }));
+  }, [pTo, mTo, pTarget, mTarget, profile, shelf, appearance, pLog, mLog, wTo, note]);
 
   // archive + celebrate when day completes
   useEffect(() => {
     if (complete && !prevComplete.current) {
       const today = todayStr();
-      setShelf(prev => [...prev.filter(e => e.date !== today), { date: today, p: pTo, m: mTo, pTarget, mTarget }]);
+      setShelf(prev => [...prev.filter(e => e.date !== today), { date: today, p: pTo, m: mTo, pTarget, mTarget, w: wTo, note }]);
       setCelebKey(k => k + 1);
     }
     prevComplete.current = complete;
@@ -824,9 +854,9 @@ function Hewn() {
         if (d && d.date !== todayStr()) {
           if (d.p > 0 || d.m > 0) {
             setShelf(prev => [...prev.filter(e => e.date !== d.date),
-              { date: d.date, p: d.p || 0, m: d.m || 0, pTarget: d.pTarget || 100, mTarget: d.mTarget || 30 }]);
+              { date: d.date, p: d.p || 0, m: d.m || 0, pTarget: d.pTarget || 100, mTarget: d.mTarget || 30, w: d.w || 0, note: d.note || "" }]);
           }
-          setPTo(0); setMTo(0); setP(0); setM(0); setPLog([]); setMLog([]);
+          setPTo(0); setMTo(0); setP(0); setM(0); setPLog([]); setMLog([]); setWTo(0); setNote("");
         }
       }
     };
@@ -877,11 +907,19 @@ function Hewn() {
     setToast(null);
   };
   const newDay = () => {
+    if (!newDayConfirm && (pTo > 0 || mTo > 0 || wTo > 0)) {
+      setNewDayConfirm(true);
+      clearTimeout(newDayTimer.current);
+      newDayTimer.current = setTimeout(() => setNewDayConfirm(false), 2500);
+      return;
+    }
+    clearTimeout(newDayTimer.current);
+    setNewDayConfirm(false);
     if (pTo > 0 || mTo > 0) {
       const today = todayStr();
-      setShelf(prev => [...prev.filter(e => e.date !== today), { date: today, p: pTo, m: mTo, pTarget, mTarget }]);
+      setShelf(prev => [...prev.filter(e => e.date !== today), { date: today, p: pTo, m: mTo, pTarget, mTarget, w: wTo, note }]);
     }
-    setPTo(0); setMTo(0); setPLog([]); setMLog([]); undo.current = []; setToast(null);
+    setPTo(0); setMTo(0); setWTo(0); setNote(""); setPLog([]); setMLog([]); undo.current = []; setToast(null);
   };
 
   const headline = complete ? "Enough for now" : "Today is still open";
@@ -925,16 +963,29 @@ function Hewn() {
           <EmojiVis pPct={Math.min(1, pTo/pTarget)} mPct={Math.min(1, mTo/mTarget)} />
         </div>
 
-        <div style={{ textAlign: "center", marginBottom: 10, minHeight: 28 }}>
+        <div style={{ textAlign: "center", marginBottom: 8, minHeight: 28 }}>
           <div style={{ fontFamily: "'Fraunces', serif", fontSize: 17, color: complete ? activeC.accent : activeC.inkMute, transition: "color 600ms" }}>{headline}</div>
           {sub && <div style={{ fontSize: 12, color: activeC.inkMute, marginTop: 3, animation: "hewnFade 700ms ease" }}>{sub}</div>}
+          <div style={{ marginTop: 5 }}>
+            {noteEditing
+              ? <input autoFocus value={note} onChange={e => setNote(e.target.value)}
+                  onBlur={() => setNoteEditing(false)} onKeyDown={e => e.key === "Enter" && e.target.blur()}
+                  maxLength={80} placeholder="Add a note for today…"
+                  style={{ background: "none", border: "none", borderBottom: `0.3px solid ${activeC.inkMute}`, textAlign: "center", fontSize: 12, color: activeC.ink, width: "78%", outline: "none", padding: "2px 0", fontFamily: "'Hanken Grotesk', sans-serif" }} />
+              : note
+                ? <button onClick={() => setNoteEditing(true)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute, fontSize: 12, maxWidth: "80%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{note}</button>
+                : <button onClick={() => setNoteEditing(true)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkFaint, fontSize: 11, letterSpacing: "0.04em" }}>+ note</button>
+            }
+          </div>
         </div>
 
         <Metric name="Movement" value={m} target={mTarget} unit="min" presets={MOVEMENT} onAdd={addM} done={mDone} onMore={() => setSheet("movement")} onLogOpen={() => setLogSheet("movement")} logCount={mLogCount} />
 
-        <div style={{ marginTop: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 22 }}>
-          <button onClick={newDay} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute, fontSize: 12, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5 }}>
-            <IReset size={12} /> New day
+        <WaterRow value={wTo} target={wTarget} onAdd={() => setWTo(v => Math.min(wTarget, v + 1))} onRemove={() => setWTo(v => Math.max(0, v - 1))} />
+
+        <div style={{ marginTop: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 22 }}>
+          <button onClick={newDay} style={{ border: "none", background: "none", cursor: "pointer", color: newDayConfirm ? activeC.ink : activeC.inkMute, fontSize: 12, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5, transition: "color 200ms" }}>
+            <IReset size={12} /> {newDayConfirm ? "Sure?" : "New day"}
           </button>
           <button onClick={() => setShelfOpen(true)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute, fontSize: 12, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5 }}>
             <IChevUp size={12} /> Shelf
@@ -956,7 +1007,7 @@ function Hewn() {
         {sheet === "movement" && <MoreSheet title="Add movement" unit="min" presets={MOVEMENT} onPick={(v, n) => addM(v, n)} onClose={() => setSheet(null)} />}
         {logSheet === "protein" && <LogSheet title="Protein today" unit="g" entries={pLog} onAdd={addP} onRemove={removeP} onClose={() => setLogSheet(null)} done={pDone} />}
         {logSheet === "movement" && <LogSheet title="Movement today" unit="min" entries={mLog} onAdd={addM} onRemove={removeM} onClose={() => setLogSheet(null)} done={mDone} />}
-        {shelfOpen && <ShelfView shelf={shelf} todayP={pTo} todayM={mTo} todayPTarget={pTarget} todayMTarget={mTarget} onClose={() => setShelfOpen(false)} />}
+        {shelfOpen && <ShelfView shelf={shelf} todayP={pTo} todayM={mTo} todayPTarget={pTarget} todayMTarget={mTarget} todayW={wTo} todayNote={note} onClose={() => setShelfOpen(false)} />}
 
         {onboard && <Quiz initial={profile || {}} onDone={(prof, t) => { setProfile(prof); setPTarget(t); setOnboard(false); }} />}
         <Celebration id={celebKey} inkColor={activeC.ink} />

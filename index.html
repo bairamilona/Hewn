@@ -997,9 +997,8 @@ function Hewn() {
     flash((label || "Logged") + " · +" + Math.round(added) + " g", true);
   };
   const addM = (min, label) => {
-    const next = Math.min(mTarget, mTo + min);
-    if (next === mTo) { flash("Enough for now", false); return; }
-    const added = next - mTo;
+    const next = mTo + min;
+    const added = min;
     const entry = { id: Date.now() + Math.random(), name: label || "Custom", amount: Math.round(added) };
     undo.current.push(["m", mTo, entry.id]);
     setMTo(next); setMLog(prev => [...prev, entry]); navigator.vibrate?.(8);

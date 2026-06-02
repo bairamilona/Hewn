@@ -10,5 +10,5 @@ const data = {
   date:    q.date || new Date().toISOString().split("T")[0],
 };
 Keychain.set("hewn_data", JSON.stringify(data));
-Safari.open("https://ewn-mauve.vercel.app");
+Safari.open("https://hewn-mauve.vercel.app");
 Script.complete();

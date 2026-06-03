@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hewn — Protein and movement, simply</title>
+<meta name="description" content="Track protein and movement. Two numbers. One character who gets happier as you go." />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta property="og:title" content="Hewn" />
+<meta property="og:description" content="Track protein and movement. Nothing more." />
+<meta name="theme-color" content="#F7F6F3" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #F7F6F3;
+  --ink: #111110;
+  --mute: rgba(17,17,16,0.38);
+  --faint: rgba(17,17,16,0.07);
+  --line: rgba(17,17,16,0.1);
+  --serif: 'Fraunces', Georgia, serif;
+  --sans: 'Hanken Grotesk', system-ui, sans-serif;
+}
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── nav ─────────────────────────────────────────────────────────────────── */
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22px 48px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(247,246,243,0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 0.3px solid var(--line);
+}
+.logo {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--ink);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 22px;
+  border-radius: 100px;
+  background: var(--ink);
+  color: var(--bg);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  transition: opacity 0.16s;
+  border: none;
+  cursor: pointer;
+}
+.btn:hover { opacity: 0.72; }
+.btn-lg {
+  padding: 14px 36px;
+  font-size: 15px;
+}
+
+/* ── hero ────────────────────────────────────────────────────────────────── */
+.hero {
+  min-height: calc(100dvh - 65px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px 80px;
+  text-align: center;
+}
+.hero-canvas-wrap {
+  margin-bottom: 40px;
+  position: relative;
+}
+#emoji-canvas {
+  display: block;
+}
+.hero h1 {
+  font-family: var(--serif);
+  font-size: clamp(52px, 10vw, 104px);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  margin-bottom: 24px;
+}
+.hero-sub {
+  font-size: clamp(14px, 2.2vw, 17px);
+  color: var(--mute);
+  max-width: 360px;
+  line-height: 1.7;
+  margin-bottom: 38px;
+}
+
+/* ── features ────────────────────────────────────────────────────────────── */
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 0.3px solid var(--line);
+  border-bottom: 0.3px solid var(--line);
+}
+.feature {
+  padding: 52px 44px;
+  border-right: 0.3px solid var(--line);
+}
+.feature:last-child { border-right: none; }
+.feature-tag {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin-bottom: 20px;
+}
+.feature h3 {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+.feature p {
+  font-size: 13.5px;
+  color: var(--mute);
+  line-height: 1.78;
+}
+
+/* ── bottom CTA ──────────────────────────────────────────────────────────── */
+.cta-end {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 100px 24px 110px;
+  gap: 28px;
+}
+.cta-end h2 {
+  font-family: var(--serif);
+  font-size: clamp(38px, 6vw, 68px);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  max-width: 600px;
+}
+.cta-end p {
+  font-size: 14px;
+  color: var(--mute);
+  line-height: 1.65;
+}
+
+/* ── footer ──────────────────────────────────────────────────────────────── */
+footer {
+  border-top: 0.3px solid var(--line);
+  padding: 26px 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11.5px;
+  color: var(--mute);
+  letter-spacing: 0.03em;
+}
+
+/* ── mobile ──────────────────────────────────────────────────────────────── */
+@media (max-width: 680px) {
+  nav { padding: 18px 20px; }
+  .features { grid-template-columns: 1fr; }
+  .feature { padding: 40px 24px; border-right: none; border-bottom: 0.3px solid var(--line); }
+  .feature:last-child { border-bottom: none; }
+  .cta-end { padding: 72px 24px 88px; }
+  footer { flex-direction: column; gap: 8px; text-align: center; padding: 22px 20px; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero h1, .hero-sub, .hero .btn-lg { animation: fadeUp 0.7s ease both; }
+.hero h1    { animation-delay: 0.05s; }
+.hero-sub   { animation-delay: 0.12s; }
+.hero .btn-lg { animation-delay: 0.2s; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">Hewn</a>
+  <a href="/" class="btn">Open App →</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-canvas-wrap">
+    <canvas id="emoji-canvas" width="264" height="264"></canvas>
+  </div>
+  <h1>Enough<br>for now.</h1>
+  <p class="hero-sub">Track protein and movement. Two numbers. One character who gets happier as you go.</p>
+  <a href="/" class="btn btn-lg">Start tracking →</a>
+</section>
+
+<section class="features">
+  <div class="feature">
+    <div class="feature-tag">Protein +</div>
+    <h3>Add by piece,<br>not by gram</h3>
+    <p>Tap an egg, a scoop, a glass. The math happens invisibly. No food scale, no calorie spiral.</p>
+  </div>
+  <div class="feature">
+    <div class="feature-tag">Movement</div>
+    <h3>Minutes,<br>not metrics</h3>
+    <p>A walk counts. A swim counts. Log the time and move on — going over the goal just means you did great.</p>
+  </div>
+  <div class="feature">
+    <div class="feature-tag">Shelf</div>
+    <h3>Your week<br>at a glance</h3>
+    <p>A quiet archive of recent days. See patterns without pressure. Each day earns its own face.</p>
+  </div>
+</section>
+
+<section class="cta-end">
+  <h2>Ready when<br>you are.</h2>
+  <p>No account. No subscription. Just open it and start.</p>
+  <a href="/" class="btn btn-lg">Open Hewn →</a>
+</section>
+
+<footer>
+  <span>Hewn</span>
+  <span>Works in your browser · No account needed</span>
+</footer>
+
+<script>
+/* ── SVG emoji (5 states) ───────────────────────────────────────────────── */
+const EMOJI_SVGS = [
+  `<svg width="353" height="353" viewBox="0 0 353 353" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="176.5" cy="176.5" r="176.5" fill="#D9D9D9"/><path d="M114 261C137.333 253.454 195.2 242.889 240 261H114Z" fill="black"/><rect x="102.574" y="132" width="77.0315" height="12.1253" transform="rotate(45 102.574 132)" fill="black"/><rect x="211.574" y="132" width="77.0315" height="12.1253" transform="rotate(45 211.574 132)" fill="black"/><rect x="157.045" y="141.079" width="77.0315" height="12.1253" transform="rotate(135 157.045 141.079)" fill="black"/><rect x="266.045" y="141.079" width="77.0315" height="12.1253" transform="rotate(135 266.045 141.079)" fill="black"/></svg>`,
+  `<svg width="353" height="353" viewBox="0 0 353 353" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="176.5" cy="176.5" r="176.5" fill="#D9D9D9"/><path d="M96.5 261.5C110.333 227.5 161.9 169.7 257.5 210.5C224.167 204.166 145.3 205.5 96.5 261.5Z" fill="black"/><path d="M162 132C158.889 156.813 137.913 176 112.5 176C87.0873 176 66.1114 156.813 63 132H162Z" fill="black"/><path d="M307 132C303.889 156.813 282.913 176 257.5 176C232.087 176 211.111 156.813 208 132H307Z" fill="black"/></svg>`,
+  `<svg width="353" height="353" viewBox="0 0 353 353" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="176.5" cy="176.5" r="176.5" fill="#D9D9D9"/><path d="M224 251C190.222 232.889 146.593 243.454 129 251C129 251 157.75 258 176.5 258C195.25 258 224 251 224 251Z" fill="black"/><path d="M234.5 120C247.479 120 258 142.386 258 170C258 176.481 257.42 182.675 256.365 188.358C250.271 181.853 242.701 178 234.5 178C226.299 178 218.728 181.853 212.634 188.358C211.579 182.675 211 176.481 211 170C211 142.386 221.521 120 234.5 120Z" fill="black"/><path d="M118.5 120C131.479 120 142 142.386 142 170C142 176.481 141.42 182.675 140.365 188.358C134.271 181.853 126.701 178 118.5 178C110.299 178 102.728 181.853 96.6338 188.358C95.5788 182.675 95 176.481 95 170C95 142.386 105.521 120 118.5 120Z" fill="black"/></svg>`,
+  `<svg width="353" height="353" viewBox="0 0 353 353" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="176.5" cy="176.5" r="176.5" fill="#D9D9D9"/><path d="M111 251C134.333 263.074 192.2 279.978 237 251H111Z" fill="black"/><ellipse cx="119.5" cy="146" rx="23.5" ry="50" fill="black"/><ellipse cx="235.5" cy="146" rx="23.5" ry="50" fill="black"/></svg>`,
+  `<svg width="353" height="353" viewBox="0 0 353 353" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="176.5" cy="176.5" r="176.5" fill="#D9D9D9"/><path d="M63 217C100.167 254.333 197.8 306.6 291 217C257.333 265.667 164.6 333.8 63 217Z" fill="black"/><ellipse cx="69.5" cy="195" rx="45.5" ry="34" fill="url(#ck0)"/><ellipse cx="275.5" cy="195" rx="45.5" ry="34" fill="url(#ck1)"/><path d="M49 154C63.8333 132.116 101.4 101.478 133 154C117.667 141.348 79.4 123.636 49 154Z" fill="black"/><path d="M217 154C231.833 132.116 269.4 101.478 301 154C285.667 141.348 247.4 123.636 217 154Z" fill="black"/><defs><linearGradient id="ck0" x1="69.5" y1="161" x2="69.5" y2="229" gradientUnits="userSpaceOnUse"><stop stop-color="#FDA6B8"/><stop offset="1" stop-color="#D9D9D9" stop-opacity="0"/></linearGradient><linearGradient id="ck1" x1="275.5" y1="161" x2="275.5" y2="229" gradientUnits="userSpaceOnUse"><stop stop-color="#FDA6B8"/><stop offset="1" stop-color="#D9D9D9" stop-opacity="0"/></linearGradient></defs></svg>`,
+];
+
+const BAYER8 = [
+   0,32, 8,40, 2,34,10,42,
+  48,16,56,24,50,18,58,26,
+  12,44, 4,36,14,46, 6,38,
+  60,28,52,20,62,30,54,22,
+   3,35,11,43, 1,33, 9,41,
+  51,19,59,27,49,17,57,25,
+  15,47, 7,39,13,45, 5,37,
+  63,31,55,23,61,29,53,21
+];
+const DITH_G = 24;
+const DITH_CHARS = [' ', '·', '∘', '○', '+', '*', '✦', '●'];
+
+/* ── SVG → color maps ───────────────────────────────────────────────────── */
+function svgColorMaps(svgStr) {
+  return new Promise(resolve => {
+    const url = URL.createObjectURL(new Blob([svgStr], { type: 'image/svg+xml' }));
+    const img = new Image();
+    img.onload = () => {
+      const G = DITH_G;
+      const c = document.createElement('canvas'); c.width = c.height = G;
+      const cx = c.getContext('2d');
+      cx.fillStyle = '#fff'; cx.fillRect(0,0,G,G);
+      cx.drawImage(img, 0,0,G,G);
+      const px = cx.getImageData(0,0,G,G).data;
+      const c2 = document.createElement('canvas'); c2.width = c2.height = G;
+      const cx2 = c2.getContext('2d');
+      cx2.drawImage(img, 0,0,G,G);
+      const px2 = cx2.getImageData(0,0,G,G).data;
+      URL.revokeObjectURL(url);
+      const gray = new Float32Array(G*G);
+      const pink = new Float32Array(G*G);
+      for (let i = 0; i < gray.length; i++) {
+        const a = px[i*4+3]/255;
+        const lum = (0.299*px[i*4]+0.587*px[i*4+1]+0.114*px[i*4+2])/255;
+        gray[i] = lum*a + (1-a);
+        const r2=px2[i*4], g2=px2[i*4+1], b2=px2[i*4+2], a2=px2[i*4+3]/255;
+        if (r2>200 && r2>g2+35 && b2>130 && a2>0.1) pink[i] = a2;
+      }
+      resolve({ gray, pink });
+    };
+    img.onerror = () => resolve({
+      gray: new Float32Array(DITH_G*DITH_G).fill(1),
+      pink: new Float32Array(DITH_G*DITH_G)
+    });
+    img.src = url;
+  });
+}
+
+/* ── animation ──────────────────────────────────────────────────────────── */
+const canvas = document.getElementById('emoji-canvas');
+const ctx = canvas.getContext('2d');
+const SIZE = 264;
+const G = DITH_G;
+const cell = SIZE / G;
+const fsize = Math.max(7, Math.floor(cell * 0.84));
+const N = DITH_CHARS.length;
+
+// cycle: start sad, climb to happy, linger, repeat
+const CYCLE = [0, 1, 2, 3, 4, 4, 4, 3, 2, 1];
+let cycleIdx = 0;
+
+const s = {
+  maps: null, pinkMaps: null,
+  cur: 0, tgt: 0, prog: 1, tStart: 0,
+  phase: 0, t0: 0
+};
+
+function transition(next) {
+  if (next === s.tgt) return;
+  if (s.prog < 1) s.cur = s.tgt;
+  s.tgt = next; s.prog = 0; s.tStart = performance.now();
+}
+
+function frame(now) {
+  requestAnimationFrame(frame);
+  if (!s.maps) return;
+  const dt = Math.min((now - s.t0) / 1000, 0.05);
+  s.t0 = now;
+  s.phase += dt * 0.85;
+  if (s.prog < 1) {
+    s.prog = Math.min(1, (now - s.tStart) / 850);
+    if (s.prog >= 1) s.cur = s.tgt;
+  }
+  const drift = Math.sin(s.phase) * 0.05;
+  const p = s.prog;
+  const mapA = s.maps[s.cur], mapB = s.maps[s.tgt];
+  const pinkA = s.pinkMaps[s.cur], pinkB = s.pinkMaps[s.tgt];
+  const pinkCells = [];
+  ctx.clearRect(0, 0, SIZE, SIZE);
+  ctx.font = `${fsize}px monospace`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#111110';
+  for (let y = 0; y < G; y++) {
+    for (let x = 0; x < G; x++) {
+      const i = y*G+x;
+      const bayer = BAYER8[(y&7)*8+(x&7)] / 64;
+      const lp = p < 1 ? Math.max(0, Math.min(1, (p - bayer*0.6) / 0.4)) : 1;
+      const lum = mapA[i] + (mapB[i] - mapA[i]) * lp;
+      const darkness = 1 - lum;
+      const level = Math.max(0, Math.min(N-1, Math.floor((darkness + drift)*N + bayer - 0.5)));
+      const ch = DITH_CHARS[level];
+      if (ch === ' ') continue;
+      const pinkV = pinkA[i] + (pinkB[i] - pinkA[i]) * lp;
+      if (pinkV > 0.08) {
+        const pl = Math.max(0, Math.min(N-1, Math.floor((Math.max(darkness, pinkV*0.55) + drift)*N + bayer - 0.5)));
+        pinkCells.push(x, y, DITH_CHARS[pl]);
+      } else {
+        ctx.fillText(ch, (x+0.5)*cell, (y+0.5)*cell);
+      }
+    }
+  }
+  if (pinkCells.length) {
+    ctx.fillStyle = '#F0608A';
+    for (let k = 0; k < pinkCells.length; k += 3)
+      ctx.fillText(pinkCells[k+2], (pinkCells[k]+0.5)*cell, (pinkCells[k+1]+0.5)*cell);
+  }
+}
+
+Promise.all(EMOJI_SVGS.map(svgColorMaps)).then(results => {
+  s.maps = results.map(r => r.gray);
+  s.pinkMaps = results.map(r => r.pink);
+  s.cur = 0; s.tgt = 0; s.prog = 1;
+  s.t0 = performance.now();
+  requestAnimationFrame(frame);
+  setInterval(() => {
+    cycleIdx = (cycleIdx + 1) % CYCLE.length;
+    transition(CYCLE[cycleIdx]);
+  }, 2600);
+});
+</script>
+</body>
+</html>

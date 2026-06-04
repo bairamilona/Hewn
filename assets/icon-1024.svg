@@ -1,0 +1,27 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="#F7F6F3"/>
+  <!-- Emoji face, scaled from 353→820, centered: offset = (1024-820)/2 = 102 -->
+  <g transform="translate(102, 102) scale(2.3228)">
+    <circle cx="176.5" cy="176.5" r="176.5" fill="#D9D9D9"/>
+    <!-- Big smile -->
+    <path d="M63 217C100.167 254.333 197.8 306.6 291 217C257.333 265.667 164.6 333.8 63 217Z" fill="#111110"/>
+    <!-- Pink cheeks -->
+    <ellipse cx="69.5" cy="195" rx="45.5" ry="34" fill="url(#ck0)"/>
+    <ellipse cx="275.5" cy="195" rx="45.5" ry="34" fill="url(#ck1)"/>
+    <!-- Left eye -->
+    <path d="M49 154C63.8333 132.116 101.4 101.478 133 154C117.667 141.348 79.4 123.636 49 154Z" fill="#111110"/>
+    <!-- Right eye -->
+    <path d="M217 154C231.833 132.116 269.4 101.478 301 154C285.667 141.348 247.4 123.636 217 154Z" fill="#111110"/>
+    <defs>
+      <linearGradient id="ck0" x1="69.5" y1="161" x2="69.5" y2="229" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#FDA6B8"/>
+        <stop offset="1" stop-color="#D9D9D9" stop-opacity="0"/>
+      </linearGradient>
+      <linearGradient id="ck1" x1="275.5" y1="161" x2="275.5" y2="229" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#FDA6B8"/>
+        <stop offset="1" stop-color="#D9D9D9" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+  </g>
+</svg>

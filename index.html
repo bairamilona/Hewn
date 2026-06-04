@@ -676,10 +676,6 @@ function ShelfTile({ polish, definition, inkColor }) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    // DPR-aware backing store — no width/height in JSX so React never resets this
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = SHELF_SZ * dpr;
-    canvas.height = SHELF_SZ * dpr;
     const ctx = canvas.getContext('2d');
     const s = anim.current;
     const G = SHELF_G;
@@ -687,7 +683,14 @@ function ShelfTile({ polish, definition, inkColor }) {
 
     function frame(now) {
       s.raf = requestAnimationFrame(frame);
-      const sz = canvas.width; // read dynamically — safe after React re-renders
+      // Auto-sync backing store to CSS display size — survives React re-renders
+      const dpr = window.devicePixelRatio || 1;
+      const cssW = canvas.clientWidth, cssH = canvas.clientHeight;
+      if (cssW > 0) {
+        const tw = Math.round(cssW * dpr), th = Math.round(cssH * dpr);
+        if (canvas.width !== tw || canvas.height !== th) { canvas.width = tw; canvas.height = th; }
+      }
+      const sz = canvas.width || 1;
       const cell = sz / G;
       const fsize = Math.max(6, Math.floor(cell * 0.78));
       const dt = Math.min((now - s.t0) / 1000, 0.05);
@@ -749,12 +752,7 @@ function ShelfTile({ polish, definition, inkColor }) {
     return () => cancelAnimationFrame(s.raf);
   }, [completion]);
 
-  return (
-    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <canvas ref={canvasRef}
-        style={{ display: "block", width: SHELF_SZ, height: SHELF_SZ }} />
-    </div>
-  );
+  return <canvas ref={canvasRef} style={{ display: "block", width: "100%", height: "100%" }} />;
 }
 
 /* ---- shelf view --------------------------------------------------- */
@@ -780,12 +778,12 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
 
   return (
     <div style={{ position: "absolute", inset: 0, zIndex: 7, background: C.base, display: "flex", flexDirection: "column", animation: "hewnFade 380ms ease" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "26px 26px 0" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "24px 24px 0" }}>
         <span style={{ fontFamily: "'Fraunces', serif", fontSize: 22, color: C.ink }}>Your shelf</span>
         <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute }}><IX size={18} /></button>
       </div>
-      <div style={{ overflowX: "auto", overflowY: "hidden", padding: "28px 22px 16px", scrollbarWidth: "none" }}>
-        <div style={{ display: "flex", gap: 10, alignItems: "flex-end", minWidth: "max-content" }}>
+      <div style={{ overflowX: "auto", overflowY: "hidden", padding: "18px 18px 10px", scrollbarWidth: "none" }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "flex-end", minWidth: "max-content" }}>
           {days.map(({ ds, entry, isToday, dow }) => {
             const polish = entry ? Math.min(1, entry.p / (entry.pTarget || 100)) : 0;
             const definition = entry ? Math.min(1, entry.m / (entry.mTarget || 30)) : 0;
@@ -793,18 +791,19 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
             const isSel = selected === ds;
             return (
               <button key={ds} onClick={() => setSelected(isSel ? null : ds)}
-                style={{ background: "none", border: "none", cursor: "pointer", padding: "0 2px",
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 0,
                   display: "flex", flexDirection: "column", alignItems: "center",
-                  opacity: hasAny || isToday ? 1 : 0.2 }}>
-                <div style={{ width: 52, height: 78, outline: isSel ? "1.5px solid " + C.accent : "none", borderRadius: 6, outlineOffset: 4 }}>
+                  opacity: hasAny || isToday ? 1 : 0.18 }}>
+                <div style={{ width: 72, height: 72, borderRadius: 10, overflow: "hidden",
+                  outline: isSel ? "1.5px solid " + C.accent : "none", outlineOffset: 3 }}>
                   {hasAny || isToday
                     ? <ShelfTile polish={polish} definition={definition} inkColor={inkColor} />
                     : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <div style={{ width: 18, height: 18, border: `0.3px solid ${C.inkFaint}`, borderRadius: "50%" }} />
+                        <div style={{ width: 20, height: 20, border: `0.5px solid ${C.inkFaint}`, borderRadius: "50%" }} />
                       </div>
                   }
                 </div>
-                <div style={{ fontSize: 10, marginTop: 8, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: isToday ? 600 : 500, letterSpacing: "0.04em",
+                <div style={{ fontSize: 10, marginTop: 6, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: isToday ? 600 : 500, letterSpacing: "0.04em",
                   color: isToday ? C.accent : C.inkMute }}>
                   {isToday ? "Today" : dow}
                 </div>
@@ -813,29 +812,29 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
           })}
         </div>
       </div>
-      <div style={{ flex: 1, padding: "8px 26px 28px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+      <div style={{ flex: 1, padding: "20px 26px 28px", display: "flex", flexDirection: "column" }}>
         {sel && sel.entry && (sel.entry.p > 0 || sel.entry.m > 0) ? (
           <div style={{ animation: "hewnFade 300ms ease" }}>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 14, color: C.inkMute, marginBottom: 16 }}>
+            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, color: C.inkMute, marginBottom: 20 }}>
               {sel.isToday ? "Today" : sel.d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
             </div>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 38, fontWeight: 400, lineHeight: 1.1, marginBottom: 8 }}>
+            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 56, fontWeight: 400, lineHeight: 1, marginBottom: 14 }}>
               <span style={{ color: C.ink }}>{Math.round(sel.entry.p)}</span>
-              <span style={{ color: C.inkMute, fontSize: 22 }}> / {sel.entry.pTarget || 100} g protein</span>
+              <span style={{ color: C.inkMute, fontSize: 26 }}> / {sel.entry.pTarget || 100} g protein</span>
             </div>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 400 }}>
+            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 40, fontWeight: 400, marginBottom: 6 }}>
               <span style={{ color: C.ink }}>{Math.round(sel.entry.m)}</span>
-              <span style={{ color: C.inkMute, fontSize: 18 }}> / {sel.entry.mTarget || 30} min movement</span>
+              <span style={{ color: C.inkMute, fontSize: 20 }}> / {sel.entry.mTarget || 30} min movement</span>
             </div>
             {sel.entry.w > 0 && (
-              <div style={{ fontSize: 13, color: C.inkMute, marginTop: 8 }}>{sel.entry.w} glasses of water</div>
+              <div style={{ fontSize: 14, color: C.inkMute, marginTop: 10 }}>{sel.entry.w} glasses of water</div>
             )}
             {sel.entry.note && (
-              <div style={{ fontSize: 13, color: C.inkMute, marginTop: 6, fontStyle: "italic" }}>"{sel.entry.note}"</div>
+              <div style={{ fontSize: 14, color: C.inkMute, marginTop: 8, fontStyle: "italic" }}>"{sel.entry.note}"</div>
             )}
           </div>
         ) : (
-          <div style={{ color: C.inkMute, fontSize: 13, fontFamily: "'Hanken Grotesk', sans-serif", lineHeight: 1.6 }}>
+          <div style={{ color: C.inkMute, fontSize: 14, fontFamily: "'Hanken Grotesk', sans-serif", lineHeight: 1.6 }}>
             {sel && !sel.entry ? "A rest day." : "Tap a day to see the numbers."}
           </div>
         )}

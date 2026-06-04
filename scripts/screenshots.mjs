@@ -180,13 +180,12 @@ const SCENARIOS = [
         if (/shelf/i.test(txt)) { await btns.nth(i).click(); break; }
       }
       await page.waitForTimeout(1000);
-      // 2. enlarge tiles
+      // 2. enlarge tiles (tiles are now 72×72; scale up to 96×96 for screenshot)
       await page.evaluate(() => {
         for (const el of document.querySelectorAll('div')) {
-          if (el.style.width === '52px' && el.style.height === '78px') {
-            el.style.width = '78px';
-            el.style.height = '104px';
-            el.style.borderRadius = '10px';
+          if (el.style.width === '72px' && el.style.height === '72px') {
+            el.style.width = '96px';
+            el.style.height = '96px';
           }
         }
       });

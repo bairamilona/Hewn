@@ -155,45 +155,55 @@ const SCENARIOS = [
   },
   {
     name: '05-shelf',
+    // Data in the FIRST 6 days of the 14-day window — visible without any scrolling
     state: makeState({
       p: 100, m: 32,
       pLog: [{ id: 1, name: 'Protein shake', amount: 25 }],
       mLog: [{ id: 6, name: 'Workout', amount: 32 }],
       w: 6,
-      shelf: [
-        { date: prev(1), p: 95, m: 30, pTarget: 100, mTarget: 30, w: 7, note: '' },
-        { date: prev(2), p: 100, m: 35, pTarget: 100, mTarget: 30, w: 8, note: '' },
-        { date: prev(3), p: 72, m: 15, pTarget: 100, mTarget: 30, w: 5, note: '' },
-        { date: prev(4), p: 100, m: 30, pTarget: 100, mTarget: 30, w: 6, note: '' },
-        { date: prev(5), p: 88, m: 20, pTarget: 100, mTarget: 30, w: 4, note: '' },
-        { date: prev(6), p: 100, m: 40, pTarget: 100, mTarget: 30, w: 7, note: '' },
-      ],
+      shelf: Array.from({ length: 13 }, (_, k) => {
+        const n = k + 1; // prev(1) through prev(13)
+        const vals = [95,100,72,100,88,100,90,78,100,85,100,92,97];
+        const mins = [30,35,15,30,20,40,25,10,32,22,30,28,35];
+        return { date: prev(n), p: vals[k], m: mins[k], pTarget: 100, mTarget: 30, w: Math.floor(Math.random()*5)+4, note: '' };
+      }),
     }),
     action: async (page) => {
       await page.waitForSelector('canvas', { timeout: 20000 });
-      await page.waitForTimeout(2000);
-      // open shelf — find button with text "Shelf"
+      // Wait for async SHELF_EMOJI_MAPS to load (SVG → canvas processing)
+      await page.waitForTimeout(3500);
+      // 1. open shelf
       const btns = page.locator('button');
-      const count = await btns.count();
-      let clicked = false;
+      let count = await btns.count();
       for (let i = 0; i < count; i++) {
-        const btn = btns.nth(i);
-        const txt = await btn.textContent().catch(() => '');
-        if (/shelf/i.test(txt)) {
-          await btn.click();
-          clicked = true;
-          break;
-        }
+        const txt = await btns.nth(i).textContent().catch(() => '');
+        if (/shelf/i.test(txt)) { await btns.nth(i).click(); break; }
       }
-      if (!clicked) {
-        console.log('  shelf button not found by text, logging all buttons:');
-        for (let i = 0; i < count; i++) {
-          const txt = await btns.nth(i).textContent().catch(() => '');
-          const box = await btns.nth(i).boundingBox().catch(() => null);
-          if (box) console.log(`  btn[${i}] y=${Math.round(box.y)} x=${Math.round(box.x)}: "${txt.trim().slice(0,40)}"`);
+      await page.waitForTimeout(1000);
+      // 2. enlarge tiles
+      await page.evaluate(() => {
+        for (const el of document.querySelectorAll('div')) {
+          if (el.style.width === '52px' && el.style.height === '78px') {
+            el.style.width = '78px';
+            el.style.height = '104px';
+            el.style.borderRadius = '10px';
+          }
         }
-      }
-      await page.waitForTimeout(1200);
+      });
+      await page.waitForTimeout(600);
+      // 3. click first tile with a canvas (ShelfTile = has data)
+      const clicked = await page.evaluate(() => {
+        for (const btn of document.querySelectorAll('button')) {
+          if (btn.querySelector('canvas') && !btn.disabled) {
+            btn.click();
+            return btn.textContent.trim();
+          }
+        }
+        return null;
+      });
+      if (!clicked) console.log('  no filled day tile found');
+      else console.log(`  clicked day: ${clicked}`);
+      await page.waitForTimeout(900);
     },
   },
 ];

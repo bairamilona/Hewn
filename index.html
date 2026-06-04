@@ -128,6 +128,37 @@ function svgColorMaps(svgStr) {
   });
 }
 
+// Shared cache — DitheredEmoji and ShelfTile reuse the same load
+let _emojiMapsPromise = null;
+function loadEmojiMaps() {
+  if (!_emojiMapsPromise) _emojiMapsPromise = Promise.all(EMOJI_SVGS.map(svgColorMaps));
+  return _emojiMapsPromise;
+}
+
+// Shelf tiles use a 12×12 grid (2× downsample from DITH_G=24)
+const SHELF_G = 12;
+let SHELF_EMOJI_MAPS = null;
+loadEmojiMaps().then(results => {
+  const scale = DITH_G / SHELF_G; // 2
+  SHELF_EMOJI_MAPS = results.map(({ gray, pink }) => {
+    const g = new Float32Array(SHELF_G * SHELF_G);
+    const p = new Float32Array(SHELF_G * SHELF_G);
+    for (let sy = 0; sy < SHELF_G; sy++) {
+      for (let sx = 0; sx < SHELF_G; sx++) {
+        let gs = 0, ps = 0;
+        for (let dy = 0; dy < scale; dy++)
+          for (let dx = 0; dx < scale; dx++) {
+            gs += gray[(sy * scale + dy) * DITH_G + (sx * scale + dx)];
+            ps += pink[(sy * scale + dy) * DITH_G + (sx * scale + dx)];
+          }
+        g[sy * SHELF_G + sx] = gs / (scale * scale);
+        p[sy * SHELF_G + sx] = ps / (scale * scale);
+      }
+    }
+    return { gray: g, pink: p };
+  });
+});
+
 function DitheredEmoji({ pPct, mPct, inkColor }) {
   const avg = (pPct + mPct) / 2;
   const idx = Math.min(4, Math.floor(avg * 5));
@@ -137,7 +168,7 @@ function DitheredEmoji({ pPct, mPct, inkColor }) {
   useEffect(() => { anim.current.ink = inkColor; }, [inkColor]);
 
   useEffect(() => {
-    Promise.all(EMOJI_SVGS.map(svgColorMaps)).then(results => {
+    loadEmojiMaps().then(results => {
       anim.current.maps = results.map(r => r.gray);
       anim.current.pinkMaps = results.map(r => r.pink);
       anim.current.cur = anim.current.tgt;
@@ -630,14 +661,98 @@ function Setup({ initial, onDone, onClose }) {
   );
 }
 
-/* ---- mini emoji for shelf thumbnails ------------------------------ */
-function MiniEmoji({ polish, definition }) {
-  const avg = (polish + definition) / 2;
-  const idx = Math.min(4, Math.floor(avg * 5));
-  const src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(EMOJI_SVGS[idx]);
+/* ---- dithered shelf tile ------------------------------------------ */
+const SHELF_SZ = 46; // CSS px
+
+function ShelfTile({ polish, definition, inkColor }) {
+  const canvasRef = useRef(null);
+  const completion = Math.min(1, (polish + definition) / 2);
+  const emojiIdx = Math.min(4, Math.floor(completion * 5));
+  const anim = useRef({ phase: 0, t0: 0, raf: null, ink: inkColor, emojiIdx });
+
+  useEffect(() => { anim.current.ink = inkColor; }, [inkColor]);
+  useEffect(() => { anim.current.emojiIdx = emojiIdx; }, [emojiIdx]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    // DPR-aware backing store — no width/height in JSX so React never resets this
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = SHELF_SZ * dpr;
+    canvas.height = SHELF_SZ * dpr;
+    const ctx = canvas.getContext('2d');
+    const s = anim.current;
+    const G = SHELF_G;
+    const N = DITH_CHARS.length;
+
+    function frame(now) {
+      s.raf = requestAnimationFrame(frame);
+      const sz = canvas.width; // read dynamically — safe after React re-renders
+      const cell = sz / G;
+      const fsize = Math.max(6, Math.floor(cell * 0.78));
+      const dt = Math.min((now - s.t0) / 1000, 0.05);
+      s.t0 = now;
+      s.phase += dt * 0.55;
+
+      ctx.clearRect(0, 0, sz, sz);
+      ctx.font = `${fsize}px monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const drift = Math.sin(s.phase) * 0.06;
+      const eMap = SHELF_EMOJI_MAPS ? SHELF_EMOJI_MAPS[s.emojiIdx] : null;
+      const pinkCells = [];
+
+      ctx.fillStyle = s.ink;
+      for (let y = 0; y < G; y++) {
+        for (let x = 0; x < G; x++) {
+          const bayer = BAYER8[(y & 7) * 8 + (x & 7)] / 64;
+          const i = y * G + x;
+
+          if (eMap) {
+            const darkness = 1 - eMap.gray[i];
+            if (darkness > 0.15) {
+              // Face pixel: render with emoji density
+              const pinkV = eMap.pink[i];
+              if (pinkV > 0.08) {
+                const pl = Math.max(0, Math.min(N-1,
+                  Math.floor((Math.max(darkness, pinkV * 0.55) + drift * 0.4) * N + bayer - 0.5)
+                ));
+                pinkCells.push(x, y, DITH_CHARS[pl]);
+              } else {
+                const level = Math.max(0, Math.min(N-1,
+                  Math.floor((darkness + drift * 0.4) * N + bayer - 0.5)
+                ));
+                const ch = DITH_CHARS[level];
+                if (ch !== ' ') ctx.fillText(ch, (x + 0.5) * cell, (y + 0.5) * cell);
+              }
+              continue;
+            }
+          }
+
+          // Background: animated shimmer based on day completion
+          const level = Math.max(0, Math.min(N-1,
+            Math.floor((completion + drift) * N + bayer - 0.5)
+          ));
+          const ch = DITH_CHARS[level];
+          if (ch !== ' ') ctx.fillText(ch, (x + 0.5) * cell, (y + 0.5) * cell);
+        }
+      }
+
+      if (pinkCells.length > 0) {
+        ctx.fillStyle = '#F0608A';
+        for (let k = 0; k < pinkCells.length; k += 3)
+          ctx.fillText(pinkCells[k+2], (pinkCells[k] + 0.5) * cell, (pinkCells[k+1] + 0.5) * cell);
+      }
+    }
+    s.raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(s.raf);
+  }, [completion]);
+
   return (
     <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <img src={src} alt="" style={{ width: 46, height: 46, objectFit: "contain" }} />
+      <canvas ref={canvasRef}
+        style={{ display: "block", width: SHELF_SZ, height: SHELF_SZ }} />
     </div>
   );
 }
@@ -645,6 +760,7 @@ function MiniEmoji({ polish, definition }) {
 /* ---- shelf view --------------------------------------------------- */
 function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, todayNote, onClose }) {
   const C = React.useContext(ThemeCtx);
+  const inkColor = C.ink;
   const [selected, setSelected] = useState(null);
 
   const days = [];
@@ -682,7 +798,7 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
                   opacity: hasAny || isToday ? 1 : 0.2 }}>
                 <div style={{ width: 52, height: 78, outline: isSel ? "1.5px solid " + C.accent : "none", borderRadius: 6, outlineOffset: 4 }}>
                   {hasAny || isToday
-                    ? <MiniEmoji polish={polish} definition={definition} />
+                    ? <ShelfTile polish={polish} definition={definition} inkColor={inkColor} />
                     : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <div style={{ width: 18, height: 18, border: `0.3px solid ${C.inkFaint}`, borderRadius: "50%" }} />
                       </div>

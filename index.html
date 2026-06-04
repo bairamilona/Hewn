@@ -776,6 +776,62 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
 
   const sel = selected ? days.find(x => x.ds === selected) : null;
 
+  /* ---- animated dither background for detail panel ---- */
+  const detailCanvasRef = useRef(null);
+  const detailS = useRef({ comp: 0.08, ink: inkColor, phase: 0, t0: 0, raf: null });
+
+  useEffect(() => {
+    const entry = sel?.entry;
+    detailS.current.comp = entry
+      ? Math.min(1, (entry.p / (entry.pTarget || 100) + entry.m / (entry.mTarget || 30)) / 2)
+      : 0.08;
+  }, [sel]);
+
+  useEffect(() => { detailS.current.ink = inkColor; }, [inkColor]);
+
+  useEffect(() => {
+    const canvas = detailCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const s = detailS.current;
+    const G = 32; // columns
+    const N = DITH_CHARS.length;
+    function frame(now) {
+      s.raf = requestAnimationFrame(frame);
+      const dpr = window.devicePixelRatio || 1;
+      const cw = canvas.clientWidth, ch = canvas.clientHeight;
+      if (cw > 0) {
+        const tw = Math.round(cw * dpr), th = Math.round(ch * dpr);
+        if (canvas.width !== tw || canvas.height !== th) { canvas.width = tw; canvas.height = th; }
+      }
+      const W = canvas.width || 1, H = canvas.height || 1;
+      const cell = W / G;
+      const GH = Math.ceil(H / cell);
+      const fsize = Math.max(5, Math.floor(cell * 0.70));
+      const dt = Math.min((now - s.t0) / 1000, 0.05);
+      s.t0 = now;
+      s.phase += dt * 0.38;
+      ctx.clearRect(0, 0, W, H);
+      ctx.font = `${fsize}px monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = s.ink;
+      const drift = Math.sin(s.phase) * 0.07;
+      for (let y = 0; y < GH; y++) {
+        for (let x = 0; x < G; x++) {
+          const bayer = BAYER8[(y & 7) * 8 + (x & 7)] / 64;
+          const level = Math.max(0, Math.min(N-1,
+            Math.floor((s.comp + drift) * N + bayer - 0.5)
+          ));
+          const ch = DITH_CHARS[level];
+          if (ch !== ' ') ctx.fillText(ch, (x + 0.5) * cell, (y + 0.5) * cell);
+        }
+      }
+    }
+    s.raf = requestAnimationFrame(frame);
+    return () => { cancelAnimationFrame(s.raf); s.raf = null; };
+  }, []);
+
   return (
     <div style={{ position: "absolute", inset: 0, zIndex: 7, background: C.base, display: "flex", flexDirection: "column", animation: "hewnFade 380ms ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "24px 24px 0" }}>
@@ -812,32 +868,46 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
           })}
         </div>
       </div>
-      <div style={{ flex: 1, padding: "20px 26px 28px", display: "flex", flexDirection: "column" }}>
-        {sel && sel.entry && (sel.entry.p > 0 || sel.entry.m > 0) ? (
-          <div style={{ animation: "hewnFade 300ms ease" }}>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, color: C.inkMute, marginBottom: 20 }}>
-              {sel.isToday ? "Today" : sel.d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+
+      {/* Detail panel — dither canvas background + giant numbers overlay */}
+      <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+        <canvas ref={detailCanvasRef}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.22 }} />
+        <div style={{ position: "relative", zIndex: 1, padding: "28px 26px 32px" }}>
+          {sel && sel.entry && (sel.entry.p > 0 || sel.entry.m > 0) ? (
+            <div style={{ animation: "hewnFade 280ms ease" }}>
+              <div style={{ fontSize: 12, fontFamily: "'Hanken Grotesk', sans-serif", color: C.inkMute, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 28 }}>
+                {sel.isToday ? "Today" : sel.d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+              </div>
+              <div style={{ marginBottom: 22 }}>
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: 164, fontWeight: 400, lineHeight: 0.85, color: C.ink }}>
+                  {Math.round(sel.entry.p)}
+                </div>
+                <div style={{ fontSize: 16, color: C.inkMute, fontFamily: "'Hanken Grotesk', sans-serif", marginTop: 10 }}>
+                  / {sel.entry.pTarget || 100} g protein
+                </div>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: 100, fontWeight: 400, lineHeight: 0.88, color: C.ink }}>
+                  {Math.round(sel.entry.m)}
+                </div>
+                <div style={{ fontSize: 15, color: C.inkMute, fontFamily: "'Hanken Grotesk', sans-serif", marginTop: 8 }}>
+                  / {sel.entry.mTarget || 30} min movement
+                </div>
+              </div>
+              {sel.entry.w > 0 && (
+                <div style={{ fontSize: 13, color: C.inkMute, marginTop: 12 }}>{sel.entry.w} glasses of water</div>
+              )}
+              {sel.entry.note && (
+                <div style={{ fontSize: 13, color: C.inkMute, marginTop: 6, fontStyle: "italic" }}>"{sel.entry.note}"</div>
+              )}
             </div>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 56, fontWeight: 400, lineHeight: 1, marginBottom: 14 }}>
-              <span style={{ color: C.ink }}>{Math.round(sel.entry.p)}</span>
-              <span style={{ color: C.inkMute, fontSize: 26 }}> / {sel.entry.pTarget || 100} g protein</span>
+          ) : (
+            <div style={{ color: C.inkMute, fontSize: 14, fontFamily: "'Hanken Grotesk', sans-serif", lineHeight: 1.6 }}>
+              {sel && !sel.entry ? "A rest day." : "Tap a day to see the numbers."}
             </div>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 40, fontWeight: 400, marginBottom: 6 }}>
-              <span style={{ color: C.ink }}>{Math.round(sel.entry.m)}</span>
-              <span style={{ color: C.inkMute, fontSize: 20 }}> / {sel.entry.mTarget || 30} min movement</span>
-            </div>
-            {sel.entry.w > 0 && (
-              <div style={{ fontSize: 14, color: C.inkMute, marginTop: 10 }}>{sel.entry.w} glasses of water</div>
-            )}
-            {sel.entry.note && (
-              <div style={{ fontSize: 14, color: C.inkMute, marginTop: 8, fontStyle: "italic" }}>"{sel.entry.note}"</div>
-            )}
-          </div>
-        ) : (
-          <div style={{ color: C.inkMute, fontSize: 14, fontFamily: "'Hanken Grotesk', sans-serif", lineHeight: 1.6 }}>
-            {sel && !sel.entry ? "A rest day." : "Tap a day to see the numbers."}
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hewn — Icon Builder</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Helvetica Neue', sans-serif;
+    background: #F7F6F3;
+    color: #111110;
+    min-height: 100vh;
+    display: flex;
+    gap: 0;
+  }
+
+  /* ---- preview ---- */
+  #preview-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    min-height: 100vh;
+  }
+  #preview {
+    width: 480px;
+    height: 480px;
+    border-radius: 108px; /* iOS icon rounding ≈ 22.5% */
+    box-shadow: 0 24px 64px rgba(0,0,0,0.14);
+    image-rendering: pixelated;
+    display: block;
+  }
+
+  /* ---- panel ---- */
+  #panel {
+    width: 300px;
+    background: #fff;
+    border-left: 1px solid rgba(17,17,16,0.08);
+    padding: 32px 24px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  #panel h1 {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .field { display: flex; flex-direction: column; gap: 8px; }
+  .field label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(17,17,16,0.45);
+    display: flex;
+    justify-content: space-between;
+  }
+  .field label span { color: #111110; font-feature-settings: 'tnum'; }
+  input[type=range] {
+    width: 100%;
+    accent-color: #111110;
+    cursor: pointer;
+  }
+  select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid rgba(17,17,16,0.15);
+    border-radius: 8px;
+    background: #F7F6F3;
+    font-size: 14px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .colors { display: flex; gap: 8px; flex-wrap: wrap; }
+  .swatch {
+    width: 32px; height: 32px; border-radius: 50%;
+    cursor: pointer; border: 2px solid transparent;
+    transition: border-color 120ms;
+  }
+  .swatch.active { border-color: #111110; }
+
+  #download {
+    margin-top: auto;
+    padding: 14px;
+    background: #111110;
+    color: #F7F6F3;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    letter-spacing: -0.01em;
+    transition: opacity 100ms;
+  }
+  #download:active { opacity: 0.7; }
+
+  .divider {
+    height: 1px;
+    background: rgba(17,17,16,0.07);
+  }
+</style>
+</head>
+<body>
+
+<div id="preview-wrap">
+  <canvas id="preview" width="1024" height="1024"></canvas>
+</div>
+
+<div id="panel">
+  <h1>Icon Builder</h1>
+
+  <div class="field">
+    <label>Grid <span id="gVal">24</span></label>
+    <input type="range" id="g" min="8" max="48" step="1" value="24">
+  </div>
+
+  <div class="field">
+    <label>Font size <span id="fsVal">86</span>%</label>
+    <input type="range" id="fs" min="50" max="120" step="1" value="86">
+  </div>
+
+  <div class="field">
+    <label>Ink color</label>
+    <div class="colors" id="inkColors">
+      <div class="swatch active" style="background:#111110" data-color="#111110"></div>
+      <div class="swatch" style="background:#1a1a2e" data-color="#1a1a2e"></div>
+      <div class="swatch" style="background:#2d4a22" data-color="#2d4a22"></div>
+      <div class="swatch" style="background:#6b2d2d" data-color="#6b2d2d"></div>
+      <div class="swatch" style="background:#4a3728" data-color="#4a3728"></div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Background</label>
+    <div class="colors" id="bgColors">
+      <div class="swatch active" style="background:#F7F6F3; border: 1px solid #ddd" data-color="#F7F6F3"></div>
+      <div class="swatch" style="background:#111110" data-color="#111110"></div>
+      <div class="swatch" style="background:#e8e0d5" data-color="#e8e0d5"></div>
+      <div class="swatch" style="background:#d6e8d5" data-color="#d6e8d5"></div>
+      <div class="swatch" style="background:#e8d5d5" data-color="#e8d5d5"></div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Characters</label>
+    <select id="charset">
+      <option value="0">· ∘ ○ + * ✦ ●  (default)</option>
+      <option value="1">. · ◦ ○ ◎ ◉ ●</option>
+      <option value="2">· + ✕ ✦ ★ ✶ ✸</option>
+      <option value="3">░ ▒ ▓ █  (block)</option>
+    </select>
+  </div>
+
+  <div class="divider"></div>
+
+  <button id="download">Download 1024×1024 PNG</button>
+</div>
+
+<script>
+const EMOJI_SVG = `<svg width="353" height="353" viewBox="0 0 353 353" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="176.5" cy="176.5" r="176.5" fill="#D9D9D9"/><path d="M63 217C100.167 254.333 197.8 306.6 291 217C257.333 265.667 164.6 333.8 63 217Z" fill="black"/><ellipse cx="69.5" cy="195" rx="45.5" ry="34" fill="url(#ck0)"/><ellipse cx="275.5" cy="195" rx="45.5" ry="34" fill="url(#ck1)"/><path d="M49 154C63.8333 132.116 101.4 101.478 133 154C117.667 141.348 79.4 123.636 49 154Z" fill="black"/><path d="M217 154C231.833 132.116 269.4 101.478 301 154C285.667 141.348 247.4 123.636 217 154Z" fill="black"/><defs><linearGradient id="ck0" x1="69.5" y1="161" x2="69.5" y2="229" gradientUnits="userSpaceOnUse"><stop stop-color="#FDA6B8"/><stop offset="1" stop-color="#D9D9D9" stop-opacity="0"/></linearGradient><linearGradient id="ck1" x1="275.5" y1="161" x2="275.5" y2="229" gradientUnits="userSpaceOnUse"><stop stop-color="#FDA6B8"/><stop offset="1" stop-color="#D9D9D9" stop-opacity="0"/></linearGradient></defs></svg>`;
+
+const BAYER8 = [
+   0,32, 8,40, 2,34,10,42,
+  48,16,56,24,50,18,58,26,
+  12,44, 4,36,14,46, 6,38,
+  60,28,52,20,62,30,54,22,
+   3,35,11,43, 1,33, 9,41,
+  51,19,59,27,49,17,57,25,
+  15,47, 7,39,13,45, 5,37,
+  63,31,55,23,61,29,53,21,
+];
+
+const CHARSETS = [
+  [' ','·','∘','○','+','*','✦','●'],
+  [' ','.','·','◦','○','◎','◉','●'],
+  [' ','·','+','✕','✦','★','✶','✸'],
+  [' ',' ','░','░','▒','▒','▓','█'],
+];
+
+// State
+let G = 24, fsMul = 0.86, inkColor = '#111110', bgColor = '#F7F6F3', charsetIdx = 0;
+let gray = null, pink = null, mapsReady = false;
+
+// Load emoji maps
+async function loadMaps(g) {
+  const blob = new Blob([EMOJI_SVG], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
+  const img = await new Promise((res, rej) => {
+    const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url;
+  });
+
+  const oc = document.createElement('canvas');
+  oc.width = oc.height = g;
+  const ox = oc.getContext('2d');
+  ox.fillStyle = '#fff'; ox.fillRect(0,0,g,g);
+  ox.drawImage(img, 0,0,g,g);
+  const px = ox.getImageData(0,0,g,g).data;
+
+  const oc2 = document.createElement('canvas');
+  oc2.width = oc2.height = g;
+  const ox2 = oc2.getContext('2d');
+  ox2.drawImage(img, 0,0,g,g);
+  const px2 = ox2.getImageData(0,0,g,g).data;
+  URL.revokeObjectURL(url);
+
+  const gr = new Float32Array(g*g);
+  const pk = new Float32Array(g*g);
+  for (let i = 0; i < g*g; i++) {
+    const a = px[i*4+3]/255;
+    gr[i] = ((0.299*px[i*4]+0.587*px[i*4+1]+0.114*px[i*4+2])/255)*a + (1-a);
+    const r2=px2[i*4], g2=px2[i*4+1], b2=px2[i*4+2], a2=px2[i*4+3]/255;
+    if (r2>200 && r2>g2+35 && b2>130 && a2>0.1) pk[i]=a2;
+  }
+  return { gr, pk };
+}
+
+let lastG = null;
+async function ensureMaps() {
+  if (lastG !== G) {
+    mapsReady = false;
+    const m = await loadMaps(G);
+    gray = m.gr; pink = m.pk;
+    lastG = G;
+    mapsReady = true;
+  }
+}
+
+function drawIcon(canvas) {
+  if (!mapsReady) return;
+  const ctx = canvas.getContext('2d');
+  const SZ = canvas.width;
+  const N = CHARSETS[charsetIdx].length;
+  const cell = SZ / G;
+  const fsize = Math.floor(cell * fsMul);
+
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0,0,SZ,SZ);
+  ctx.font = fsize + 'px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const pinkCells = [];
+  // Invert ink for dark background
+  const isDark = bgColor === '#111110';
+  ctx.fillStyle = isDark ? '#F0EFEB' : inkColor;
+
+  for (let y = 0; y < G; y++) {
+    for (let x = 0; x < G; x++) {
+      const i = y*G+x;
+      const bayer = BAYER8[(y&7)*8+(x&7)] / 64;
+      const darkness = 1 - gray[i];
+      const level = Math.max(0, Math.min(N-1, Math.floor(darkness*N + bayer - 0.5)));
+      const ch = CHARSETS[charsetIdx][level];
+      if (!ch || ch === ' ') continue;
+      if (pink[i] > 0.08) {
+        const pl = Math.max(0, Math.min(N-1, Math.floor(Math.max(darkness, pink[i]*0.55)*N + bayer - 0.5)));
+        pinkCells.push(x, y, CHARSETS[charsetIdx][pl]);
+      } else {
+        ctx.fillText(ch, (x+0.5)*cell, (y+0.5)*cell);
+      }
+    }
+  }
+  const pinkInk = isDark ? '#FF9EB5' : '#F0608A';
+  ctx.fillStyle = pinkInk;
+  for (let k = 0; k < pinkCells.length; k+=3)
+    ctx.fillText(pinkCells[k+2], (pinkCells[k]+0.5)*cell, (pinkCells[k+1]+0.5)*cell);
+}
+
+const preview = document.getElementById('preview');
+let pending = false;
+
+async function refresh() {
+  if (pending) return;
+  pending = true;
+  await ensureMaps();
+  drawIcon(preview);
+  pending = false;
+}
+
+// Controls
+const gSlider = document.getElementById('g');
+const fsSlider = document.getElementById('fs');
+gSlider.addEventListener('input', () => {
+  G = +gSlider.value;
+  document.getElementById('gVal').textContent = G;
+  refresh();
+});
+fsSlider.addEventListener('input', () => {
+  fsMul = +fsSlider.value / 100;
+  document.getElementById('fsVal').textContent = fsSlider.value;
+  refresh();
+});
+document.getElementById('charset').addEventListener('change', e => {
+  charsetIdx = +e.target.value;
+  refresh();
+});
+
+function bindSwatches(containerId, cb) {
+  document.getElementById(containerId).addEventListener('click', e => {
+    const sw = e.target.closest('.swatch');
+    if (!sw) return;
+    document.querySelectorAll('#'+containerId+' .swatch').forEach(s => s.classList.remove('active'));
+    sw.classList.add('active');
+    cb(sw.dataset.color);
+  });
+}
+bindSwatches('inkColors', c => { inkColor = c; refresh(); });
+bindSwatches('bgColors', c => { bgColor = c; refresh(); });
+
+document.getElementById('download').addEventListener('click', () => {
+  if (!mapsReady) return;
+  const c = document.createElement('canvas');
+  c.width = c.height = 1024;
+  drawIcon(c);
+  const a = document.createElement('a');
+  a.href = c.toDataURL('image/png');
+  a.download = 'icon-1024.png';
+  a.click();
+});
+
+// Init
+refresh();
+</script>
+</body>
+</html>

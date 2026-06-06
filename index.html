@@ -128,6 +128,37 @@ function svgColorMaps(svgStr) {
   });
 }
 
+// Shared cache — DitheredEmoji and ShelfTile reuse the same load
+let _emojiMapsPromise = null;
+function loadEmojiMaps() {
+  if (!_emojiMapsPromise) _emojiMapsPromise = Promise.all(EMOJI_SVGS.map(svgColorMaps));
+  return _emojiMapsPromise;
+}
+
+// Shelf tiles use a 12×12 grid (2× downsample from DITH_G=24)
+const SHELF_G = 12;
+let SHELF_EMOJI_MAPS = null;
+loadEmojiMaps().then(results => {
+  const scale = DITH_G / SHELF_G; // 2
+  SHELF_EMOJI_MAPS = results.map(({ gray, pink }) => {
+    const g = new Float32Array(SHELF_G * SHELF_G);
+    const p = new Float32Array(SHELF_G * SHELF_G);
+    for (let sy = 0; sy < SHELF_G; sy++) {
+      for (let sx = 0; sx < SHELF_G; sx++) {
+        let gs = 0, ps = 0;
+        for (let dy = 0; dy < scale; dy++)
+          for (let dx = 0; dx < scale; dx++) {
+            gs += gray[(sy * scale + dy) * DITH_G + (sx * scale + dx)];
+            ps += pink[(sy * scale + dy) * DITH_G + (sx * scale + dx)];
+          }
+        g[sy * SHELF_G + sx] = gs / (scale * scale);
+        p[sy * SHELF_G + sx] = ps / (scale * scale);
+      }
+    }
+    return { gray: g, pink: p };
+  });
+});
+
 function DitheredEmoji({ pPct, mPct, inkColor }) {
   const avg = (pPct + mPct) / 2;
   const idx = Math.min(4, Math.floor(avg * 5));
@@ -137,7 +168,7 @@ function DitheredEmoji({ pPct, mPct, inkColor }) {
   useEffect(() => { anim.current.ink = inkColor; }, [inkColor]);
 
   useEffect(() => {
-    Promise.all(EMOJI_SVGS.map(svgColorMaps)).then(results => {
+    loadEmojiMaps().then(results => {
       anim.current.maps = results.map(r => r.gray);
       anim.current.pinkMaps = results.map(r => r.pink);
       anim.current.cur = anim.current.tgt;
@@ -630,21 +661,104 @@ function Setup({ initial, onDone, onClose }) {
   );
 }
 
-/* ---- mini emoji for shelf thumbnails ------------------------------ */
-function MiniEmoji({ polish, definition }) {
-  const avg = (polish + definition) / 2;
-  const idx = Math.min(4, Math.floor(avg * 5));
-  const src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(EMOJI_SVGS[idx]);
-  return (
-    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <img src={src} alt="" style={{ width: 46, height: 46, objectFit: "contain" }} />
-    </div>
-  );
+/* ---- dithered shelf tile ------------------------------------------ */
+const SHELF_SZ = 46; // CSS px
+
+function ShelfTile({ polish, definition, inkColor }) {
+  const canvasRef = useRef(null);
+  const completion = Math.min(1, (polish + definition) / 2);
+  const emojiIdx = Math.min(4, Math.floor(completion * 5));
+  const anim = useRef({ phase: 0, t0: 0, raf: null, ink: inkColor, emojiIdx });
+
+  useEffect(() => { anim.current.ink = inkColor; }, [inkColor]);
+  useEffect(() => { anim.current.emojiIdx = emojiIdx; }, [emojiIdx]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const s = anim.current;
+    const G = SHELF_G;
+    const N = DITH_CHARS.length;
+
+    function frame(now) {
+      s.raf = requestAnimationFrame(frame);
+      // Auto-sync backing store to CSS display size — survives React re-renders
+      const dpr = window.devicePixelRatio || 1;
+      const cssW = canvas.clientWidth, cssH = canvas.clientHeight;
+      if (cssW > 0) {
+        const tw = Math.round(cssW * dpr), th = Math.round(cssH * dpr);
+        if (canvas.width !== tw || canvas.height !== th) { canvas.width = tw; canvas.height = th; }
+      }
+      const sz = canvas.width || 1;
+      const cell = sz / G;
+      const fsize = Math.max(6, Math.floor(cell * 0.78));
+      const dt = Math.min((now - s.t0) / 1000, 0.05);
+      s.t0 = now;
+      s.phase += dt * 0.55;
+
+      ctx.clearRect(0, 0, sz, sz);
+      ctx.font = `${fsize}px monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const drift = Math.sin(s.phase) * 0.06;
+      const eMap = SHELF_EMOJI_MAPS ? SHELF_EMOJI_MAPS[s.emojiIdx] : null;
+      const pinkCells = [];
+
+      ctx.fillStyle = s.ink;
+      for (let y = 0; y < G; y++) {
+        for (let x = 0; x < G; x++) {
+          const bayer = BAYER8[(y & 7) * 8 + (x & 7)] / 64;
+          const i = y * G + x;
+
+          if (eMap) {
+            const darkness = 1 - eMap.gray[i];
+            if (darkness > 0.15) {
+              // Face pixel: render with emoji density
+              const pinkV = eMap.pink[i];
+              if (pinkV > 0.08) {
+                const pl = Math.max(0, Math.min(N-1,
+                  Math.floor((Math.max(darkness, pinkV * 0.55) + drift * 0.4) * N + bayer - 0.5)
+                ));
+                pinkCells.push(x, y, DITH_CHARS[pl]);
+              } else {
+                const level = Math.max(0, Math.min(N-1,
+                  Math.floor((darkness + drift * 0.4) * N + bayer - 0.5)
+                ));
+                const ch = DITH_CHARS[level];
+                if (ch !== ' ') ctx.fillText(ch, (x + 0.5) * cell, (y + 0.5) * cell);
+              }
+              continue;
+            }
+          }
+
+          // Background: animated shimmer based on day completion
+          const level = Math.max(0, Math.min(N-1,
+            Math.floor((completion + drift) * N + bayer - 0.5)
+          ));
+          const ch = DITH_CHARS[level];
+          if (ch !== ' ') ctx.fillText(ch, (x + 0.5) * cell, (y + 0.5) * cell);
+        }
+      }
+
+      if (pinkCells.length > 0) {
+        ctx.fillStyle = '#F0608A';
+        for (let k = 0; k < pinkCells.length; k += 3)
+          ctx.fillText(pinkCells[k+2], (pinkCells[k] + 0.5) * cell, (pinkCells[k+1] + 0.5) * cell);
+      }
+    }
+    s.raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(s.raf);
+  }, [completion]);
+
+  return <canvas ref={canvasRef} style={{ display: "block", width: "100%", height: "100%" }} />;
 }
 
 /* ---- shelf view --------------------------------------------------- */
 function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, todayNote, onClose }) {
   const C = React.useContext(ThemeCtx);
+  const inkColor = C.ink;
   const [selected, setSelected] = useState(null);
 
   const days = [];
@@ -662,14 +776,70 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
 
   const sel = selected ? days.find(x => x.ds === selected) : null;
 
+  /* ---- animated dither background for detail panel ---- */
+  const detailCanvasRef = useRef(null);
+  const detailS = useRef({ comp: 0.08, ink: inkColor, phase: 0, t0: 0, raf: null });
+
+  useEffect(() => {
+    const entry = sel?.entry;
+    detailS.current.comp = entry
+      ? Math.min(1, (entry.p / (entry.pTarget || 100) + entry.m / (entry.mTarget || 30)) / 2)
+      : 0.08;
+  }, [sel]);
+
+  useEffect(() => { detailS.current.ink = inkColor; }, [inkColor]);
+
+  useEffect(() => {
+    const canvas = detailCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const s = detailS.current;
+    const G = 32; // columns
+    const N = DITH_CHARS.length;
+    function frame(now) {
+      s.raf = requestAnimationFrame(frame);
+      const dpr = window.devicePixelRatio || 1;
+      const cw = canvas.clientWidth, ch = canvas.clientHeight;
+      if (cw > 0) {
+        const tw = Math.round(cw * dpr), th = Math.round(ch * dpr);
+        if (canvas.width !== tw || canvas.height !== th) { canvas.width = tw; canvas.height = th; }
+      }
+      const W = canvas.width || 1, H = canvas.height || 1;
+      const cell = W / G;
+      const GH = Math.ceil(H / cell);
+      const fsize = Math.max(5, Math.floor(cell * 0.70));
+      const dt = Math.min((now - s.t0) / 1000, 0.05);
+      s.t0 = now;
+      s.phase += dt * 0.38;
+      ctx.clearRect(0, 0, W, H);
+      ctx.font = `${fsize}px monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = s.ink;
+      const drift = Math.sin(s.phase) * 0.07;
+      for (let y = 0; y < GH; y++) {
+        for (let x = 0; x < G; x++) {
+          const bayer = BAYER8[(y & 7) * 8 + (x & 7)] / 64;
+          const level = Math.max(0, Math.min(N-1,
+            Math.floor((s.comp + drift) * N + bayer - 0.5)
+          ));
+          const ch = DITH_CHARS[level];
+          if (ch !== ' ') ctx.fillText(ch, (x + 0.5) * cell, (y + 0.5) * cell);
+        }
+      }
+    }
+    s.raf = requestAnimationFrame(frame);
+    return () => { cancelAnimationFrame(s.raf); s.raf = null; };
+  }, []);
+
   return (
     <div style={{ position: "absolute", inset: 0, zIndex: 7, background: C.base, display: "flex", flexDirection: "column", animation: "hewnFade 380ms ease" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "26px 26px 0" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "24px 24px 0" }}>
         <span style={{ fontFamily: "'Fraunces', serif", fontSize: 22, color: C.ink }}>Your shelf</span>
         <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute }}><IX size={18} /></button>
       </div>
-      <div style={{ overflowX: "auto", overflowY: "hidden", padding: "28px 22px 16px", scrollbarWidth: "none" }}>
-        <div style={{ display: "flex", gap: 10, alignItems: "flex-end", minWidth: "max-content" }}>
+      <div style={{ overflowX: "auto", overflowY: "hidden", padding: "18px 18px 10px", scrollbarWidth: "none" }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "flex-end", minWidth: "max-content" }}>
           {days.map(({ ds, entry, isToday, dow }) => {
             const polish = entry ? Math.min(1, entry.p / (entry.pTarget || 100)) : 0;
             const definition = entry ? Math.min(1, entry.m / (entry.mTarget || 30)) : 0;
@@ -677,18 +847,19 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
             const isSel = selected === ds;
             return (
               <button key={ds} onClick={() => setSelected(isSel ? null : ds)}
-                style={{ background: "none", border: "none", cursor: "pointer", padding: "0 2px",
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 0,
                   display: "flex", flexDirection: "column", alignItems: "center",
-                  opacity: hasAny || isToday ? 1 : 0.2 }}>
-                <div style={{ width: 52, height: 78, outline: isSel ? "1.5px solid " + C.accent : "none", borderRadius: 6, outlineOffset: 4 }}>
+                  opacity: hasAny || isToday ? 1 : 0.18 }}>
+                <div style={{ width: 72, height: 72, borderRadius: 10, overflow: "hidden",
+                  outline: isSel ? "1.5px solid " + C.accent : "none", outlineOffset: 3 }}>
                   {hasAny || isToday
-                    ? <MiniEmoji polish={polish} definition={definition} />
+                    ? <ShelfTile polish={polish} definition={definition} inkColor={inkColor} />
                     : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <div style={{ width: 18, height: 18, border: `0.3px solid ${C.inkFaint}`, borderRadius: "50%" }} />
+                        <div style={{ width: 20, height: 20, border: `0.5px solid ${C.inkFaint}`, borderRadius: "50%" }} />
                       </div>
                   }
                 </div>
-                <div style={{ fontSize: 10, marginTop: 8, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: isToday ? 600 : 500, letterSpacing: "0.04em",
+                <div style={{ fontSize: 10, marginTop: 6, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: isToday ? 600 : 500, letterSpacing: "0.04em",
                   color: isToday ? C.accent : C.inkMute }}>
                   {isToday ? "Today" : dow}
                 </div>
@@ -697,32 +868,46 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
           })}
         </div>
       </div>
-      <div style={{ flex: 1, padding: "8px 26px 28px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-        {sel && sel.entry && (sel.entry.p > 0 || sel.entry.m > 0) ? (
-          <div style={{ animation: "hewnFade 300ms ease" }}>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 14, color: C.inkMute, marginBottom: 16 }}>
-              {sel.isToday ? "Today" : sel.d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+
+      {/* Detail panel — dither canvas background + giant numbers overlay */}
+      <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+        <canvas ref={detailCanvasRef}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.22 }} />
+        <div style={{ position: "relative", zIndex: 1, padding: "28px 26px 32px" }}>
+          {sel && sel.entry && (sel.entry.p > 0 || sel.entry.m > 0) ? (
+            <div style={{ animation: "hewnFade 280ms ease" }}>
+              <div style={{ fontSize: 12, fontFamily: "'Hanken Grotesk', sans-serif", color: C.inkMute, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 28 }}>
+                {sel.isToday ? "Today" : sel.d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+              </div>
+              <div style={{ marginBottom: 22 }}>
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: 164, fontWeight: 400, lineHeight: 0.85, color: C.ink }}>
+                  {Math.round(sel.entry.p)}
+                </div>
+                <div style={{ fontSize: 16, color: C.inkMute, fontFamily: "'Hanken Grotesk', sans-serif", marginTop: 10 }}>
+                  / {sel.entry.pTarget || 100} g protein
+                </div>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: 100, fontWeight: 400, lineHeight: 0.88, color: C.ink }}>
+                  {Math.round(sel.entry.m)}
+                </div>
+                <div style={{ fontSize: 15, color: C.inkMute, fontFamily: "'Hanken Grotesk', sans-serif", marginTop: 8 }}>
+                  / {sel.entry.mTarget || 30} min movement
+                </div>
+              </div>
+              {sel.entry.w > 0 && (
+                <div style={{ fontSize: 13, color: C.inkMute, marginTop: 12 }}>{sel.entry.w} glasses of water</div>
+              )}
+              {sel.entry.note && (
+                <div style={{ fontSize: 13, color: C.inkMute, marginTop: 6, fontStyle: "italic" }}>"{sel.entry.note}"</div>
+              )}
             </div>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 38, fontWeight: 400, lineHeight: 1.1, marginBottom: 8 }}>
-              <span style={{ color: C.ink }}>{Math.round(sel.entry.p)}</span>
-              <span style={{ color: C.inkMute, fontSize: 22 }}> / {sel.entry.pTarget || 100} g protein</span>
+          ) : (
+            <div style={{ color: C.inkMute, fontSize: 14, fontFamily: "'Hanken Grotesk', sans-serif", lineHeight: 1.6 }}>
+              {sel && !sel.entry ? "A rest day." : "Tap a day to see the numbers."}
             </div>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 400 }}>
-              <span style={{ color: C.ink }}>{Math.round(sel.entry.m)}</span>
-              <span style={{ color: C.inkMute, fontSize: 18 }}> / {sel.entry.mTarget || 30} min movement</span>
-            </div>
-            {sel.entry.w > 0 && (
-              <div style={{ fontSize: 13, color: C.inkMute, marginTop: 8 }}>{sel.entry.w} glasses of water</div>
-            )}
-            {sel.entry.note && (
-              <div style={{ fontSize: 13, color: C.inkMute, marginTop: 6, fontStyle: "italic" }}>"{sel.entry.note}"</div>
-            )}
-          </div>
-        ) : (
-          <div style={{ color: C.inkMute, fontSize: 13, fontFamily: "'Hanken Grotesk', sans-serif", lineHeight: 1.6 }}>
-            {sel && !sel.entry ? "A rest day." : "Tap a day to see the numbers."}
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

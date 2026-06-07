@@ -55,6 +55,237 @@ const C = LIGHT; // module-level default; components shadow via ThemeCtx
 const ThemeCtx = React.createContext(LIGHT);
 const lerp = (a, b, t) => a + (b - a) * t;
 
+/* ---- i18n ---------------------------------------------------------- */
+function ruPluralForm(n, forms) {
+  const an = Math.abs(n);
+  if (!Number.isInteger(an)) return forms[1];
+  const n10 = an % 10, n100 = an % 100;
+  if (n10 === 1 && n100 !== 11) return forms[0];
+  if (n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) return forms[1];
+  return forms[2];
+}
+const RU_DAY = ["день", "дня", "дней"];
+const RU_GLASS = ["стакан", "стакана", "стаканов"];
+const RU_UNITS = {
+  egg: ["яйцо", "яйца", "яиц"],
+  piece: ["кусок", "куска", "кусков"],
+  scoop: ["мерная ложка", "мерные ложки", "мерных ложек"],
+  cup: ["чашка", "чашки", "чашек"],
+  glass: ["стакан", "стакана", "стаканов"],
+  slice: ["ломтик", "ломтика", "ломтиков"],
+  handful: ["горсть", "горсти", "горстей"],
+  spoon: ["ложка", "ложки", "ложек"],
+  bar: ["батончик", "батончика", "батончиков"],
+};
+
+const STRINGS = {
+  en: {
+    headlineComplete: "Enough for now",
+    headlineOpen: "Today is still open",
+    savedToCollection: "Saved to your collection",
+    newDay: "New day",
+    sure: "Sure?",
+    shelfLabel: "Shelf",
+    notePlaceholder: "Add a note for today…",
+    addNote: "+ note",
+    targets: "Targets",
+    appearance: "Appearance",
+    light: "Light",
+    dark: "Dark",
+    system: "System",
+    language: "Language",
+    lang_system: "System",
+    lang_en: "English",
+    lang_ru: "Русский",
+    proteinPlusHint: "Protein + is your add-on target on top of regular meals. Change anytime.",
+    chooseFood: "Choose a food",
+    howManyEggs: "How many eggs?",
+    howManyEggPieces: "How many egg-size pieces?",
+    howManyUnits: "How many {unit}?",
+    add: "Add",
+    addOnGoalTitle: "Add-on goal",
+    addOnGoalQuestion: "How much extra protein do you want to add on top of your usual meals each day?",
+    save: "Save",
+    begin: "Begin",
+    yourShelf: "Your shelf",
+    today: "Today",
+    restDay: "A rest day.",
+    tapADay: "Tap a day to see the numbers.",
+    proteinUnitLabel: "g protein",
+    movementUnitLabel: "min movement",
+    proteinTodayTitle: "Protein today",
+    movementTodayTitle: "Movement today",
+    nothingLoggedYet: "Nothing logged yet",
+    addAgain: "Add again",
+    remove: "Remove",
+    waterLabel: "WATER",
+    minusHalf: "− half",
+    plusHalf: "+ half",
+    of: "of {target} {unit}",
+    countOfFood: "{count} {unit} of {food}",
+    addProteinBtn: "Add protein +",
+    addMovementBtn: "Add movement",
+    sheetAddProtein: "Add protein",
+    sheetAddMovement: "Add movement",
+    proteinPlusName: "Protein +",
+    movementName: "Movement",
+    earlierToday: "Earlier today",
+    customLabel: "Custom",
+    loggedLabel: "Logged",
+    undo: "Undo",
+    back: "‹ Back",
+    kcal: "kcal",
+    g: "g",
+    min: "min",
+  },
+  ru: {
+    headlineComplete: "Пока хватит",
+    headlineOpen: "День ещё не закончен",
+    savedToCollection: "Сохранено в архив",
+    newDay: "Новый день",
+    sure: "Точно?",
+    shelfLabel: "Архив",
+    notePlaceholder: "Заметка о сегодняшнем дне…",
+    addNote: "+ заметка",
+    targets: "Цели",
+    appearance: "Тема",
+    light: "Светлая",
+    dark: "Тёмная",
+    system: "Системная",
+    language: "Язык",
+    lang_system: "Системный",
+    lang_en: "English",
+    lang_ru: "Русский",
+    proteinPlusHint: "«Белок +» — цель сверх обычных приёмов пищи. Можно изменить в любой момент.",
+    chooseFood: "Выбери продукт",
+    howManyEggs: "Сколько яиц?",
+    howManyEggPieces: "Сколько порций размером с яйцо?",
+    howManyUnits: "Сколько — {unit}?",
+    add: "Добавить",
+    addOnGoalTitle: "Цель добавки",
+    addOnGoalQuestion: "Сколько дополнительного белка ты хочешь добавлять каждый день сверх обычных приёмов пищи?",
+    save: "Сохранить",
+    begin: "Начать",
+    yourShelf: "Твой архив",
+    today: "Сегодня",
+    restDay: "День отдыха.",
+    tapADay: "Нажми на день, чтобы увидеть цифры.",
+    proteinUnitLabel: "г белка",
+    movementUnitLabel: "мин активности",
+    proteinTodayTitle: "Белок сегодня",
+    movementTodayTitle: "Активность сегодня",
+    nothingLoggedYet: "Пока ничего не добавлено",
+    addAgain: "Добавить ещё раз",
+    remove: "Удалить",
+    waterLabel: "ВОДА",
+    minusHalf: "− половина",
+    plusHalf: "+ половина",
+    of: "из {target} {unit}",
+    countOfFood: "{food} — {count} {unit}",
+    addProteinBtn: "Добавить белок +",
+    addMovementBtn: "Добавить активность",
+    sheetAddProtein: "Добавить белок",
+    sheetAddMovement: "Добавить активность",
+    proteinPlusName: "Белок +",
+    movementName: "Активность",
+    earlierToday: "Ранее сегодня",
+    customLabel: "Другое",
+    loggedLabel: "Добавлено",
+    undo: "Отменить",
+    back: "‹ Назад",
+    kcal: "ккал",
+    g: "г",
+    min: "мин",
+  },
+};
+
+function fillTemplate(str, vars) {
+  if (!vars) return str;
+  return str.replace(/\{(\w+)\}/g, (_, k) => (vars[k] !== undefined ? vars[k] : "{" + k + "}"));
+}
+function makeT(lang) {
+  const dict = STRINGS[lang] || STRINGS.en;
+  return (key, vars) => fillTemplate(dict[key] !== undefined ? dict[key] : (STRINGS.en[key] || key), vars);
+}
+function detectLang() {
+  const nav = ((typeof navigator !== "undefined" && navigator.language) || "en").toLowerCase();
+  return nav.startsWith("ru") ? "ru" : "en";
+}
+const LangCtx = React.createContext({ lang: "en", t: makeT("en") });
+
+/* unit shown alongside numbers — "g"/"min" measurement units (not food-counting units) */
+function measureUnit(lang, unit) {
+  if (lang === "ru") return unit === "g" ? "г" : unit === "min" ? "мин" : unit;
+  return unit;
+}
+/* localized plural for food-counting units (egg, piece, scoop, cup, …) */
+function pluralUnit(lang, unit, n) {
+  if (lang === "ru" && RU_UNITS[unit]) return ruPluralForm(n, RU_UNITS[unit]);
+  return plural(unit, n);
+}
+function streakText(lang, n, complete) {
+  if (lang === "ru") return `${n} ${ruPluralForm(n, RU_DAY)} подряд`;
+  return complete ? `${n} days in a row` : `${n} day streak`;
+}
+function glassesText(lang, n) {
+  if (lang === "ru") return `${n} ${ruPluralForm(n, RU_GLASS)} воды`;
+  return `${n} glass${n === 1 ? "" : "es"} of water`;
+}
+function loggedToastText(lang, t, label, amount, unit) {
+  const lbl = label || t("loggedLabel");
+  return `${lbl} · +${Math.round(amount)} ${measureUnit(lang, unit)}`;
+}
+const DOW_RU = ["вс", "пн", "вт", "ср", "чт", "пт", "сб"];
+const DOW_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+function dowLabel(lang, dayIdx) { return (lang === "ru" ? DOW_RU : DOW_EN)[dayIdx]; }
+function longDate(lang, d) {
+  return d.toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US", { weekday: "long", month: "long", day: "numeric" });
+}
+
+/* food/movement name & note translations — keyed by canonical English name */
+const PROTEIN_RU = {
+  "Chicken": "Курица", "Turkey": "Индейка", "Beef": "Говядина", "Veal": "Телятина",
+  "Pork": "Свинина", "Lamb": "Баранина", "Duck": "Утка", "Ham": "Ветчина",
+  "Bacon": "Бекон", "Sausage": "Сосиска", "Meatball": "Фрикаделька", "Breaded chicken": "Курица в панировке",
+  "Fish (white)": "Белая рыба", "Salmon": "Лосось", "Tuna": "Тунец", "Cod": "Треска",
+  "Shrimp": "Креветки", "Crab": "Краб", "Sardines": "Сардины",
+  "Egg": "Яйцо", "Egg white": "Яичный белок", "Cheese": "Сыр", "Mozzarella": "Моцарелла",
+  "Cottage cheese": "Творог", "Ricotta": "Рикотта", "Greek yogurt": "Греческий йогурт",
+  "Yogurt": "Йогурт", "Milk": "Молоко", "Kefir": "Кефир",
+  "Tofu": "Тофу", "Tempeh": "Темпе", "Edamame": "Эдамаме", "Lentils": "Чечевица",
+  "Chickpeas": "Нут", "Black beans": "Чёрная фасоль", "Kidney beans": "Красная фасоль",
+  "Peas": "Горох", "Quinoa": "Киноа", "Hummus": "Хумус", "Peanut butter": "Арахисовая паста",
+  "Nuts": "Орехи", "Seeds": "Семена", "Soy milk": "Соевое молоко",
+  "Protein shake": "Протеиновый коктейль", "Whey powder": "Сывороточный протеин", "Protein bar": "Протеиновый батончик",
+  "Bread": "Хлеб", "Oats": "Овсянка", "Pasta": "Паста", "Rice": "Рис",
+};
+const MOVEMENT_RU = {
+  "Short walk":  { n: "Короткая прогулка", note: "Освежает голову" },
+  "Workout":     { n: "Тренировка", note: "Поднимает настроение надолго" },
+  "Stretch":     { n: "Растяжка", note: "Снимает напряжение" },
+  "Long walk":   { n: "Долгая прогулка", note: "Стабильная энергия" },
+  "Cycle":       { n: "Велосипед", note: "Улучшает кровообращение" },
+  "Run":         { n: "Бег", note: "Всплеск эндорфинов" },
+  "Yoga":        { n: "Йога", note: "Спокойная концентрация" },
+  "Chores":      { n: "Домашние дела", note: "Активный отдых" },
+};
+const GROUP_RU = {
+  "Meat": "Мясо", "Fish & seafood": "Рыба и морепродукты", "Eggs & dairy": "Яйца и молочное",
+  "Plant": "Растительное", "Supplements": "Добавки", "Grains": "Злаки",
+};
+function foodLabel(lang, food) {
+  const base = food.n.split(" (")[0];
+  if (lang === "ru") return PROTEIN_RU[food.n] || base;
+  return base;
+}
+function movementLabel(lang, item) {
+  return (lang === "ru" && MOVEMENT_RU[item.n]) ? MOVEMENT_RU[item.n].n : item.n;
+}
+function movementNote(lang, item) {
+  return (lang === "ru" && MOVEMENT_RU[item.n]) ? MOVEMENT_RU[item.n].note : item.note;
+}
+function groupLabel(lang, g) { return lang === "ru" ? (GROUP_RU[g] || g) : g; }
+
 /* ---- inline icons ------------------------------------------------- */
 function Ico({ children, size = 18, sw = 1.6 }) {
   return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -394,6 +625,7 @@ function Egg({ fill = 1, size = 30, onClick }) {
    right edge again to half it. Simpler: tapping egg i sets count to i; a ½ control toggles a trailing half. */
 function EggRow({ count, onChange, max = 6 }) {
   const C = React.useContext(ThemeCtx);
+  const { t } = React.useContext(LangCtx);
   const whole = Math.floor(count);
   const half = count - whole >= 0.5;
   const eggs = [];
@@ -408,9 +640,9 @@ function EggRow({ count, onChange, max = 6 }) {
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>{eggs}</div>
       <div style={{ display: "flex", gap: 8 }}>
         <button onClick={() => onChange(Math.max(0.5, count - 0.5))}
-          style={{ flex: 1, height: 38, borderRadius: 100, border: `0.3px solid ${C.inkMute}`, cursor: "pointer", background: "transparent", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 }}>− half</button>
+          style={{ flex: 1, height: 38, borderRadius: 100, border: `0.3px solid ${C.inkMute}`, cursor: "pointer", background: "transparent", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 }}>{t("minusHalf")}</button>
         <button onClick={() => onChange(count + 0.5)}
-          style={{ flex: 1, height: 38, borderRadius: 100, border: `0.3px solid ${C.inkMute}`, cursor: "pointer", background: "transparent", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 }}>+ half</button>
+          style={{ flex: 1, height: 38, borderRadius: 100, border: `0.3px solid ${C.inkMute}`, cursor: "pointer", background: "transparent", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 }}>{t("plusHalf")}</button>
       </div>
     </div>
   );
@@ -419,18 +651,19 @@ function EggRow({ count, onChange, max = 6 }) {
 /* numeric picker for scoop/cup/glass/slice/handful/spoon/bar units */
 function NumPicker({ count, onChange, unit }) {
   const C = React.useContext(ThemeCtx);
+  const { lang, t } = React.useContext(LangCtx);
   const big = { width: 46, height: 46, borderRadius: "50%", border: `0.3px solid ${C.inkMute}`, cursor: "pointer", background: "transparent", color: C.ink, display: "grid", placeItems: "center" };
   const small = { flex: 1, height: 38, borderRadius: 100, border: `0.3px solid ${C.inkMute}`, cursor: "pointer", background: "transparent", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 };
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 18, marginBottom: 12 }}>
         <button style={big} onClick={() => onChange(Math.max(0.5, count - 1))}><IMinus size={18} /></button>
-        <div style={{ minWidth: 92, textAlign: "center", fontFamily: "'Fraunces', serif", fontSize: 26 }}>{fmtCount(count)} <span style={{ fontSize: 15, color: C.inkMute }}>{plural(unit, count)}</span></div>
+        <div style={{ minWidth: 92, textAlign: "center", fontFamily: "'Fraunces', serif", fontSize: 26 }}>{fmtCount(count)} <span style={{ fontSize: 15, color: C.inkMute }}>{pluralUnit(lang, unit, count)}</span></div>
         <button style={big} onClick={() => onChange(count + 1)}><IPlus size={18} /></button>
       </div>
       <div style={{ display: "flex", gap: 8 }}>
-        <button style={small} onClick={() => onChange(Math.max(0.5, count - 0.5))}>− half</button>
-        <button style={small} onClick={() => onChange(count + 0.5)}>+ half</button>
+        <button style={small} onClick={() => onChange(Math.max(0.5, count - 0.5))}>{t("minusHalf")}</button>
+        <button style={small} onClick={() => onChange(count + 0.5)}>{t("plusHalf")}</button>
       </div>
     </div>
   );
@@ -451,8 +684,9 @@ function Chip({ name, amount, unit, block, onTap, dim }) {
     </span>
   </button>);
 }
-function Metric({ name, value, target, unit, presets, onAdd, done, onMore, onLogOpen, block, logCount }) {
+function Metric({ label, addLabel, value, target, unit, presets, onAdd, done, onMore, onLogOpen, block, logCount }) {
   const C = React.useContext(ThemeCtx);
+  const { lang, t } = React.useContext(LangCtx);
   const pct = Math.min(1, value / target);
   const R = 27, sz = (R + 4) * 2;
   const circ = 2 * Math.PI * R;
@@ -476,13 +710,13 @@ function Metric({ name, value, target, unit, presets, onAdd, done, onMore, onLog
               animation: logCount > 0 ? "hewnLog 380ms cubic-bezier(.25,.1,.25,1)" : "none" }}>
               {Math.round(value)}
             </div>
-            <div style={{ fontSize: 8, color: C.inkMute, textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 1 }}>{unit}</div>
+            <div style={{ fontSize: 8, color: C.inkMute, textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 1 }}>{measureUnit(lang, unit)}</div>
           </div>
         </div>
         {/* Text + add button */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.22em", textTransform: "uppercase", color: C.inkMute, marginBottom: 4 }}>{name}</div>
-          <div style={{ fontSize: 11.5, color: C.inkMute, marginBottom: 9 }}>of {target} {unit}</div>
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.22em", textTransform: "uppercase", color: C.inkMute, marginBottom: 4 }}>{label}</div>
+          <div style={{ fontSize: 11.5, color: C.inkMute, marginBottom: 9 }}>{t("of", { target, unit: measureUnit(lang, unit) })}</div>
           <button onClick={onMore} disabled={done}
             style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "5px 15px",
               borderRadius: 100, border: `0.3px solid ${done ? C.inkMute : C.ink}`,
@@ -490,7 +724,7 @@ function Metric({ name, value, target, unit, presets, onAdd, done, onMore, onLog
               color: done ? C.inkMute : C.base,
               fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12.5, fontWeight: 600,
               cursor: done ? "default" : "pointer", opacity: done ? 0.45 : 1 }}>
-            <IPlus size={12} /> Add {name.toLowerCase()}
+            <IPlus size={12} /> {addLabel}
           </button>
         </div>
       </div>
@@ -505,8 +739,8 @@ function Metric({ name, value, target, unit, presets, onAdd, done, onMore, onLog
               cursor: done ? "default" : "pointer", opacity: done ? 0.35 : 1,
               display: "inline-flex", alignItems: "center", gap: 2 }}>
             {block && <Block />}
-            {it.n.split(" (")[0]}
-            <span style={{ color: C.inkMute }}>·{it.v}{unit}</span>
+            {block ? foodLabel(lang, it) : movementLabel(lang, it)}
+            <span style={{ color: C.inkMute }}>·{it.v}{measureUnit(lang, unit)}</span>
           </button>
         ))}
       </div>
@@ -515,6 +749,7 @@ function Metric({ name, value, target, unit, presets, onAdd, done, onMore, onLog
 }
 function MoreSheet({ title, unit, presets, onPick, onClose, blocks }) {
   const C = React.useContext(ThemeCtx);
+  const { lang, t } = React.useContext(LangCtx);
   const [food, setFood] = useState(null); // null = food-picker step
   const [count, setCount] = useState(1);
 
@@ -538,12 +773,12 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks }) {
                 padding: "11px 18px", display: "flex", alignItems: "center", justifyContent: "space-between",
                 textAlign: "left" }}>
               <div>
-                <span style={{ fontSize: 14.5, fontWeight: 500 }}>{it.n}</span>
-                {it.note && <span style={{ fontSize: 11, color: C.inkMute, marginLeft: 8 }}>{it.note}</span>}
+                <span style={{ fontSize: 14.5, fontWeight: 500 }}>{movementLabel(lang, it)}</span>
+                {it.note && <span style={{ fontSize: 11, color: C.inkMute, marginLeft: 8 }}>{movementNote(lang, it)}</span>}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0, marginLeft: 10 }}>
-                {it.cal && <span style={{ fontSize: 10.5, color: C.inkMute }}>~{it.cal} kcal</span>}
-                <span style={{ fontSize: 11, color: C.inkMute }}>+{it.v} min</span>
+                {it.cal && <span style={{ fontSize: 10.5, color: C.inkMute }}>~{it.cal} {t("kcal")}</span>}
+                <span style={{ fontSize: 11, color: C.inkMute }}>+{it.v} {t("min")}</span>
                 {it.lift && (
                   <div style={{ display: "flex", gap: 2.5 }}>
                     {[1,2,3].map(d => (
@@ -566,10 +801,10 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks }) {
     return (<>
       <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.18)", zIndex: 5 }} />
       <div style={sheetWrap}>
-        {headerRow(titleEl("Choose a food"), closeBtn)}
+        {headerRow(titleEl(t("chooseFood")), closeBtn)}
         {PROTEIN_GROUPS.map((grp) => (
           <div key={grp} style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: C.inkMute, marginBottom: 9 }}>{grp}</div>
+            <div style={{ fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: C.inkMute, marginBottom: 9 }}>{groupLabel(lang, grp)}</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
               {presets.filter((it) => it.g === grp).sort((a,b) => b.v - a.v).map((it) => (
                 <button key={it.n} onClick={() => { setFood(it); setCount(1); }}
@@ -578,8 +813,8 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks }) {
                     fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13.5, fontWeight: 500,
                     padding: "7px 14px", textAlign: "left",
                     display: "flex", flexDirection: "column", gap: 1 }}>
-                  <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{it.n.split(" (")[0]}</span>
-                  <span style={{ fontSize: 10, color: C.inkMute, fontWeight: 400 }}>{it.v}g / {it.u}</span>
+                  <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{foodLabel(lang, it)}</span>
+                  <span style={{ fontSize: 10, color: C.inkMute, fontWeight: 400 }}>{it.v}{measureUnit(lang, "g")} / {(lang === "ru" && RU_UNITS[it.u]) ? RU_UNITS[it.u][0] : it.u}</span>
                 </button>
               ))}
             </div>
@@ -592,36 +827,38 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks }) {
   // protein — STEP 2: set amount with the unit-aware picker. No grams shown.
   const egg = isEggUnit(food.u);
   const grams = Math.round(food.v * count);
-  const qLabel = food.u === "egg" ? "How many eggs?" : egg ? "How many egg-size pieces?" : "How many " + plural(food.u, 2) + "?";
-  const foodName = food.n.split(" (")[0].toLowerCase();
-  const backBtn = <button onClick={() => setFood(null)} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13.5, display: "inline-flex", alignItems: "center", gap: 4, padding: 0 }}>‹ Back</button>;
+  const qLabel = food.u === "egg" ? t("howManyEggs") : egg ? t("howManyEggPieces") : t("howManyUnits", { unit: pluralUnit(lang, food.u, 2) });
+  const foodName = lang === "ru" ? foodLabel(lang, food) : food.n.split(" (")[0].toLowerCase();
+  const countUnitLabel = egg ? pluralUnit(lang, food.u === "egg" ? "egg" : "piece", count) : pluralUnit(lang, food.u, count);
+  const backBtn = <button onClick={() => setFood(null)} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13.5, display: "inline-flex", alignItems: "center", gap: 4, padding: 0 }}>{t("back")}</button>;
   return (<>
     <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.18)", zIndex: 5 }} />
     <div style={sheetWrap}>
       {headerRow(backBtn, closeBtn)}
-      <div style={{ fontFamily: "'Fraunces', serif", fontSize: 24, marginBottom: 22 }}>{food.n.split(" (")[0]}</div>
+      <div style={{ fontFamily: "'Fraunces', serif", fontSize: 24, marginBottom: 22 }}>{foodLabel(lang, food)}</div>
 
       <div style={{ fontSize: 11.5, letterSpacing: "0.16em", textTransform: "uppercase", color: C.inkMute, marginBottom: 14 }}>{qLabel}</div>
       {egg ? <EggRow count={count} onChange={setCount} /> : <NumPicker count={count} onChange={setCount} unit={food.u} />}
 
       <div style={{ textAlign: "center", margin: "22px 0 18px", fontFamily: "'Fraunces', serif", fontSize: 17, color: C.ink }}>
-        {fmtCount(count)} {egg ? plural(food.u === "egg" ? "egg" : "piece", count) : plural(food.u, count)} of {foodName}
+        {t("countOfFood", { count: fmtCount(count), unit: countUnitLabel, food: foodName })}
       </div>
 
-      <button onClick={() => { onPick(grams, food.n.split(" (")[0]); onClose(); }}
+      <button onClick={() => { onPick(grams, foodLabel(lang, food)); onClose(); }}
         style={{ width: "100%", height: 56, borderRadius: 16, border: "none", cursor: "pointer", background: C.accent, color: C.base,
           fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 16, fontWeight: 600 }}>
-        Add
+        {t("add")}
       </button>
     </div>
   </>);
 }
 function Stepper({ value, step, unit, onChange }) {
   const C = React.useContext(ThemeCtx);
+  const { lang } = React.useContext(LangCtx);
   const btn = { width: 40, height: 40, borderRadius: 12, border: "none", cursor: "pointer", background: C.inkFaint, color: C.ink, display: "grid", placeItems: "center" };
   return (<div style={{ display: "flex", alignItems: "center", gap: 14 }}>
     <button style={btn} onClick={() => onChange(-step)}><IMinus size={16} /></button>
-    <div style={{ fontFamily: "'Fraunces', serif", fontSize: 22, minWidth: 78, textAlign: "center" }}>{value} {unit}</div>
+    <div style={{ fontFamily: "'Fraunces', serif", fontSize: 22, minWidth: 78, textAlign: "center" }}>{value} {measureUnit(lang, unit)}</div>
     <button style={btn} onClick={() => onChange(step)}><IPlus size={16} /></button>
   </div>);
 }
@@ -631,31 +868,33 @@ function todayStr() { const d = new Date(); return d.getFullYear()+"-"+(d.getMon
 /* first-run setup: user sets their own add-on protein goal */
 function Setup({ initial, onDone, onClose }) {
   const C = React.useContext(ThemeCtx);
+  const { lang, t } = React.useContext(LangCtx);
   const [val, setVal] = useState(initial || 40);
+  const gUnit = measureUnit(lang, "g");
 
   return (
     <div style={{ position: "absolute", inset: 0, zIndex: 8, background: C.base, padding: "calc(env(safe-area-inset-top) + 44px) 28px calc(env(safe-area-inset-bottom) + 28px)", display: "flex", flexDirection: "column", animation: "hewnFadeSlow 700ms ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, opacity: 0, animation: "hewnFadeSlow 700ms ease forwards", animationDelay: "40ms" }}>
-        <span style={{ fontFamily: "'Fraunces', serif", fontSize: 25, fontWeight: 400 }}>Add-on goal</span>
+        <span style={{ fontFamily: "'Fraunces', serif", fontSize: 25, fontWeight: 400 }}>{t("addOnGoalTitle")}</span>
         {onClose && <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute }}><IX size={18} /></button>}
       </div>
       <p style={{ fontSize: 13.5, color: C.inkMute, lineHeight: 1.6, marginTop: 0, marginBottom: 0, opacity: 0, animation: "hewnFadeSlow 700ms ease forwards", animationDelay: "100ms" }}>
-        How much extra protein do you want to add on top of your usual meals each day?
+        {t("addOnGoalQuestion")}
       </p>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 28, opacity: 0, animation: "hewnFadeSlow 700ms ease forwards", animationDelay: "220ms" }}>
         <div style={{ textAlign: "center" }}>
           <span style={{ fontFamily: "'Fraunces', serif", fontSize: 64, fontWeight: 400 }}>{val}</span>
-          <span style={{ fontSize: 22, color: C.inkMute, marginLeft: 6 }}>g</span>
+          <span style={{ fontSize: 22, color: C.inkMute, marginLeft: 6 }}>{gUnit}</span>
         </div>
         <input type="range" min={10} max={120} step={5} value={val} onChange={e => setVal(Number(e.target.value))}
           style={{ width: "100%", accentColor: C.ink, height: 2 }} />
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: C.inkMute }}>
-          <span>10 g</span><span>120 g</span>
+          <span>10 {gUnit}</span><span>120 {gUnit}</span>
         </div>
       </div>
       <button onClick={() => onDone(val)}
         style={{ width: "100%", height: 56, borderRadius: 16, border: "none", cursor: "pointer", background: C.ink, color: C.base, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 16, fontWeight: 600, opacity: 0, animation: "hewnFadeSlow 800ms ease forwards", animationDelay: "360ms" }}>
-        {onClose ? "Save" : "Begin"}
+        {onClose ? t("save") : t("begin")}
       </button>
     </div>
   );
@@ -758,6 +997,7 @@ function ShelfTile({ polish, definition, inkColor }) {
 /* ---- shelf view --------------------------------------------------- */
 function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, todayNote, onClose }) {
   const C = React.useContext(ThemeCtx);
+  const { lang, t } = React.useContext(LangCtx);
   const inkColor = C.ink;
   const [selected, setSelected] = useState(null);
 
@@ -770,7 +1010,7 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
     const entry = isToday
       ? { date: ds, p: todayP, m: todayM, pTarget: todayPTarget, mTarget: todayMTarget, w: todayW, note: todayNote }
       : (shelf || []).find(e => e.date === ds);
-    const dow = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()];
+    const dow = dowLabel(lang, d.getDay());
     days.push({ ds, entry, isToday, dow, d });
   }
 
@@ -835,7 +1075,7 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
   return (
     <div style={{ position: "absolute", inset: 0, zIndex: 7, background: C.base, display: "flex", flexDirection: "column", animation: "hewnFade 380ms ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "24px 24px 0" }}>
-        <span style={{ fontFamily: "'Fraunces', serif", fontSize: 22, color: C.ink }}>Your shelf</span>
+        <span style={{ fontFamily: "'Fraunces', serif", fontSize: 22, color: C.ink }}>{t("yourShelf")}</span>
         <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute }}><IX size={18} /></button>
       </div>
       <div style={{ overflowX: "auto", overflowY: "hidden", padding: "18px 18px 10px", scrollbarWidth: "none" }}>
@@ -861,7 +1101,7 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
                 </div>
                 <div style={{ fontSize: 10, marginTop: 6, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: isToday ? 600 : 500, letterSpacing: "0.04em",
                   color: isToday ? C.accent : C.inkMute }}>
-                  {isToday ? "Today" : dow}
+                  {isToday ? t("today") : dow}
                 </div>
               </button>
             );
@@ -877,14 +1117,14 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
           {sel && sel.entry && (sel.entry.p > 0 || sel.entry.m > 0) ? (
             <div style={{ animation: "hewnFade 280ms ease" }}>
               <div style={{ fontSize: 12, fontFamily: "'Hanken Grotesk', sans-serif", color: C.inkMute, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 28 }}>
-                {sel.isToday ? "Today" : sel.d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+                {sel.isToday ? t("today") : longDate(lang, sel.d)}
               </div>
               <div style={{ marginBottom: 22 }}>
                 <div style={{ fontFamily: "'Fraunces', serif", fontSize: 164, fontWeight: 400, lineHeight: 0.85, color: C.ink }}>
                   {Math.round(sel.entry.p)}
                 </div>
                 <div style={{ fontSize: 16, color: C.inkMute, fontFamily: "'Hanken Grotesk', sans-serif", marginTop: 10 }}>
-                  / {sel.entry.pTarget || 100} g protein
+                  / {sel.entry.pTarget || 100} {t("proteinUnitLabel")}
                 </div>
               </div>
               <div style={{ marginBottom: 16 }}>
@@ -892,11 +1132,11 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
                   {Math.round(sel.entry.m)}
                 </div>
                 <div style={{ fontSize: 15, color: C.inkMute, fontFamily: "'Hanken Grotesk', sans-serif", marginTop: 8 }}>
-                  / {sel.entry.mTarget || 30} min movement
+                  / {sel.entry.mTarget || 30} {t("movementUnitLabel")}
                 </div>
               </div>
               {sel.entry.w > 0 && (
-                <div style={{ fontSize: 13, color: C.inkMute, marginTop: 12 }}>{sel.entry.w} glasses of water</div>
+                <div style={{ fontSize: 13, color: C.inkMute, marginTop: 12 }}>{glassesText(lang, sel.entry.w)}</div>
               )}
               {sel.entry.note && (
                 <div style={{ fontSize: 13, color: C.inkMute, marginTop: 6, fontStyle: "italic" }}>"{sel.entry.note}"</div>
@@ -904,7 +1144,7 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
             </div>
           ) : (
             <div style={{ color: C.inkMute, fontSize: 14, fontFamily: "'Hanken Grotesk', sans-serif", lineHeight: 1.6 }}>
-              {sel && !sel.entry ? "A rest day." : "Tap a day to see the numbers."}
+              {sel && !sel.entry ? t("restDay") : t("tapADay")}
             </div>
           )}
         </div>
@@ -916,6 +1156,7 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
 /* ---- today's log sheet ------------------------------------------- */
 function LogSheet({ title, unit, entries, onAdd, onRemove, onClose, done }) {
   const C = React.useContext(ThemeCtx);
+  const { lang, t } = React.useContext(LangCtx);
   const sheetWrap = { position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 6,
     background: C.base, borderTopLeftRadius: 28, borderTopRightRadius: 28,
     padding: "24px 24px calc(env(safe-area-inset-bottom) + 28px)",
@@ -930,7 +1171,7 @@ function LogSheet({ title, unit, entries, onAdd, onRemove, onClose, done }) {
       </div>
       {entries.length === 0 ? (
         <div style={{ color: C.inkMute, fontSize: 13.5, textAlign: "center", padding: "28px 0", fontFamily: "'Hanken Grotesk', sans-serif" }}>
-          Nothing logged yet
+          {t("nothingLoggedYet")}
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -943,14 +1184,14 @@ function LogSheet({ title, unit, entries, onAdd, onRemove, onClose, done }) {
                 <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14, color: C.ink,
                   whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" }}>{e.name}</span>
               </div>
-              <span style={{ fontFamily: "'Fraunces', serif", fontSize: 14, color: C.inkMute, flexShrink: 0 }}>+{e.amount} {unit}</span>
-              <button onClick={() => onAdd(e.amount, e.name)} disabled={done} title="Add again"
+              <span style={{ fontFamily: "'Fraunces', serif", fontSize: 14, color: C.inkMute, flexShrink: 0 }}>+{e.amount} {measureUnit(lang, unit)}</span>
+              <button onClick={() => onAdd(e.amount, e.name)} disabled={done} title={t("addAgain")}
                 style={{ width: 30, height: 30, borderRadius: "50%", border: `0.3px solid ${done ? C.inkFaint : C.inkMute}`,
                   background: "transparent", color: done ? C.inkMute : C.ink, cursor: done ? "default" : "pointer",
                   display: "grid", placeItems: "center", flexShrink: 0, opacity: done ? 0.4 : 1 }}>
                 <IPlus size={13} />
               </button>
-              <button onClick={() => onRemove(e.id)} title="Remove"
+              <button onClick={() => onRemove(e.id)} title={t("remove")}
                 style={{ width: 30, height: 30, borderRadius: "50%", border: `0.3px solid ${C.inkMute}`,
                   background: "transparent", color: C.ink, cursor: "pointer",
                   display: "grid", placeItems: "center", flexShrink: 0 }}>
@@ -970,10 +1211,11 @@ function loadState() { try { return JSON.parse(localStorage.getItem("hewn-v1") |
 /* ---- water row ---------------------------------------------------- */
 function WaterRow({ value, target, onAdd, onRemove }) {
   const C = React.useContext(ThemeCtx);
+  const { t } = React.useContext(LangCtx);
   const glasses = target || 8;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0 2px" }}>
-      <span style={{ fontSize: 10, color: C.inkMute, letterSpacing: "0.06em", flexShrink: 0 }}>WATER</span>
+      <span style={{ fontSize: 10, color: C.inkMute, letterSpacing: "0.06em", flexShrink: 0 }}>{t("waterLabel")}</span>
       <div style={{ flex: 1, display: "flex", gap: 2 }}>
         {Array.from({ length: glasses }, (_, i) => (
           <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i < value ? C.ink : C.inkFaint, transition: "background 280ms" }} />
@@ -1072,15 +1314,18 @@ function Hewn() {
     return base;
   });
   const [appearance, setAppearance] = useState(init && init.appearance ? init.appearance : "light");
+  const [langPref, setLangPref] = useState(init && init.lang ? init.lang : "system");
+  const lang = langPref === "system" ? detectLang() : langPref;
+  const t = React.useMemo(() => makeT(lang), [lang]);
   const [phone, setPhone] = useState(typeof window !== "undefined" && window.innerWidth <= 480);
   const [pLog, setPLog] = useState(() => {
     if (sameDay && init.pLog && init.pLog.length > 0) return init.pLog;
-    if (sameDay && init.p > 0) return [{ id: 1, name: "Earlier today", amount: init.p }];
+    if (sameDay && init.p > 0) return [{ id: 1, name: t("earlierToday"), amount: init.p }];
     return [];
   });
   const [mLog, setMLog] = useState(() => {
     if (sameDay && init.mLog && init.mLog.length > 0) return init.mLog;
-    if (sameDay && init.m > 0) return [{ id: 2, name: "Earlier today", amount: init.m }];
+    if (sameDay && init.m > 0) return [{ id: 2, name: t("earlierToday"), amount: init.m }];
     return [];
   });
   const [logSheet, setLogSheet] = useState(null);
@@ -1138,8 +1383,8 @@ function Hewn() {
 
   // persist
   useEffect(() => {
-    localStorage.setItem("hewn-v1", JSON.stringify({ date: todayStr(), p: pTo, m: mTo, pTarget, mTarget, shelf, appearance, pLog, mLog, w: wTo, note }));
-  }, [pTo, mTo, pTarget, mTarget, shelf, appearance, pLog, mLog, wTo, note]);
+    localStorage.setItem("hewn-v1", JSON.stringify({ date: todayStr(), p: pTo, m: mTo, pTarget, mTarget, shelf, appearance, lang: langPref, pLog, mLog, w: wTo, note }));
+  }, [pTo, mTo, pTarget, mTarget, shelf, appearance, langPref, pLog, mLog, wTo, note]);
 
   // archive + celebrate when day completes
   useEffect(() => {
@@ -1181,22 +1426,22 @@ function Hewn() {
 
   const addP = (g, label) => {
     const next = Math.min(pTarget, pTo + g);
-    if (next === pTo) { flash("Enough for now", false); return; }
+    if (next === pTo) { flash(t("headlineComplete"), false); return; }
     const added = next - pTo;
-    const entry = { id: Date.now() + Math.random(), name: label || "Custom", amount: Math.round(added) };
+    const entry = { id: Date.now() + Math.random(), name: label || t("customLabel"), amount: Math.round(added) };
     undo.current.push(["p", pTo, entry.id]);
     setPTo(next); setPLog(prev => [...prev, entry]); navigator.vibrate?.(8);
     setPLogCount(c => c + 1);
-    flash((label || "Logged") + " · +" + Math.round(added) + " g", true);
+    flash(loggedToastText(lang, t, label, added, "g"), true);
   };
   const addM = (min, label) => {
     const next = mTo + min;
     const added = min;
-    const entry = { id: Date.now() + Math.random(), name: label || "Custom", amount: Math.round(added) };
+    const entry = { id: Date.now() + Math.random(), name: label || t("customLabel"), amount: Math.round(added) };
     undo.current.push(["m", mTo, entry.id]);
     setMTo(next); setMLog(prev => [...prev, entry]); navigator.vibrate?.(8);
     setMLogCount(c => c + 1);
-    flash((label || "Logged") + " · +" + Math.round(added) + " min", true);
+    flash(loggedToastText(lang, t, label, added, "min"), true);
   };
   const removeP = (id) => {
     const e = pLog.find(x => x.id === id); if (!e) return;
@@ -1228,10 +1473,10 @@ function Hewn() {
     setPTo(0); setMTo(0); setWTo(0); setNote(""); setPLog([]); setMLog([]); undo.current = []; setToast(null);
   };
 
-  const headline = complete ? "Enough for now" : "Today is still open";
+  const headline = complete ? t("headlineComplete") : t("headlineOpen");
   const sub = complete
-    ? (streak >= 2 ? `${streak} days in a row` : "Saved to your collection")
-    : (streak >= 2 ? `${streak} day streak` : null);
+    ? (streak >= 2 ? streakText(lang, streak, true) : t("savedToCollection"))
+    : (streak >= 2 ? streakText(lang, streak, false) : null);
 
   const wrap = phone
     ? { height: "100dvh", width: "100%", background: activeC.base, fontFamily: "'Hanken Grotesk', sans-serif", overflow: "hidden" }
@@ -1244,6 +1489,7 @@ function Hewn() {
 
   return (
     <ThemeCtx.Provider value={activeC}>
+    <LangCtx.Provider value={{ lang, t }}>
     <div style={wrap}>
       <div style={frame}>
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.05, mixBlendMode: "multiply", zIndex: 2,
@@ -1262,7 +1508,7 @@ function Hewn() {
         </button>
 
         <div style={{ marginTop: 14 }}>
-          <Metric name="Protein +" value={p} target={pTarget} unit="g" presets={PROTEIN} onAdd={addP} done={pDone} onMore={() => setSheet("protein")} onLogOpen={() => setLogSheet("protein")} block logCount={pLogCount} />
+          <Metric label={t("proteinPlusName")} addLabel={t("addProteinBtn")} value={p} target={pTarget} unit="g" presets={PROTEIN} onAdd={addP} done={pDone} onMore={() => setSheet("protein")} onLogOpen={() => setLogSheet("protein")} block logCount={pLogCount} />
         </div>
 
         <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', paddingTop: 18 }}>
@@ -1276,25 +1522,25 @@ function Hewn() {
             {noteEditing
               ? <input autoFocus value={note} onChange={e => setNote(e.target.value)}
                   onBlur={() => setNoteEditing(false)} onKeyDown={e => e.key === "Enter" && e.target.blur()}
-                  maxLength={80} placeholder="Add a note for today…"
+                  maxLength={80} placeholder={t("notePlaceholder")}
                   style={{ background: "none", border: "none", borderBottom: `0.3px solid ${activeC.inkMute}`, textAlign: "center", fontSize: 12, color: activeC.ink, width: "78%", outline: "none", padding: "2px 0", fontFamily: "'Hanken Grotesk', sans-serif" }} />
               : note
                 ? <button onClick={() => setNoteEditing(true)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute, fontSize: 12, maxWidth: "80%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{note}</button>
-                : <button onClick={() => setNoteEditing(true)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkFaint, fontSize: 11, letterSpacing: "0.04em" }}>+ note</button>
+                : <button onClick={() => setNoteEditing(true)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkFaint, fontSize: 11, letterSpacing: "0.04em" }}>{t("addNote")}</button>
             }
           </div>
         </div>
 
-        <Metric name="Movement" value={m} target={mTarget} unit="min" presets={MOVEMENT} onAdd={addM} done={mDone} onMore={() => setSheet("movement")} onLogOpen={() => setLogSheet("movement")} logCount={mLogCount} />
+        <Metric label={t("movementName")} addLabel={t("addMovementBtn")} value={m} target={mTarget} unit="min" presets={MOVEMENT} onAdd={addM} done={mDone} onMore={() => setSheet("movement")} onLogOpen={() => setLogSheet("movement")} logCount={mLogCount} />
 
         <WaterRow value={wTo} target={wTarget} onAdd={() => setWTo(v => Math.min(wTarget, v + 1))} onRemove={() => setWTo(v => Math.max(0, v - 1))} />
 
         <div style={{ marginTop: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 22 }}>
           <button onClick={newDay} style={{ border: "none", background: "none", cursor: "pointer", color: newDayConfirm ? activeC.ink : activeC.inkMute, fontSize: 12, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5, transition: "color 200ms" }}>
-            <IReset size={12} /> {newDayConfirm ? "Sure?" : "New day"}
+            <IReset size={12} /> {newDayConfirm ? t("sure") : t("newDay")}
           </button>
           <button onClick={() => setShelfOpen(true)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute, fontSize: 12, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5 }}>
-            <IChevUp size={12} /> Shelf
+            <IChevUp size={12} /> {t("shelfLabel")}
           </button>
           {streak >= 2 && (
             <span style={{ color: streak >= 7 ? activeC.ink : activeC.inkMute, fontSize: 12, letterSpacing: "0.04em", fontVariantNumeric: "tabular-nums" }}>
@@ -1303,20 +1549,20 @@ function Hewn() {
           )}
         </div>
 
-        {sheet === "protein" && <MoreSheet title="Add protein" unit="g" presets={PROTEIN} onPick={(v, n) => addP(v, n)} onClose={() => setSheet(null)} blocks />}
-        {sheet === "movement" && <MoreSheet title="Add movement" unit="min" presets={MOVEMENT} onPick={(v, n) => addM(v, n)} onClose={() => setSheet(null)} />}
-        {logSheet === "protein" && <LogSheet title="Protein today" unit="g" entries={pLog} onAdd={addP} onRemove={removeP} onClose={() => setLogSheet(null)} done={pDone} />}
-        {logSheet === "movement" && <LogSheet title="Movement today" unit="min" entries={mLog} onAdd={addM} onRemove={removeM} onClose={() => setLogSheet(null)} done={mDone} />}
+        {sheet === "protein" && <MoreSheet title={t("sheetAddProtein")} unit="g" presets={PROTEIN} onPick={(v, n) => addP(v, n)} onClose={() => setSheet(null)} blocks />}
+        {sheet === "movement" && <MoreSheet title={t("sheetAddMovement")} unit="min" presets={MOVEMENT} onPick={(v, n) => addM(v, n)} onClose={() => setSheet(null)} />}
+        {logSheet === "protein" && <LogSheet title={t("proteinTodayTitle")} unit="g" entries={pLog} onAdd={addP} onRemove={removeP} onClose={() => setLogSheet(null)} done={pDone} />}
+        {logSheet === "movement" && <LogSheet title={t("movementTodayTitle")} unit="min" entries={mLog} onAdd={addM} onRemove={removeM} onClose={() => setLogSheet(null)} done={mDone} />}
         {shelfOpen && <ShelfView shelf={shelf} todayP={pTo} todayM={mTo} todayPTarget={pTarget} todayMTarget={mTarget} todayW={wTo} todayNote={note} onClose={() => setShelfOpen(false)} />}
 
-        {onboard && <Setup initial={pTarget} onDone={(t) => { setPTarget(t); setOnboard(false); }} />}
+        {onboard && <Setup initial={pTarget} onDone={(v) => { setPTarget(v); setOnboard(false); }} />}
         <Celebration id={celebKey} inkColor={activeC.ink} />
-        {editSetup && <Setup initial={pTarget} onClose={() => setEditSetup(false)} onDone={(t) => { setPTarget(t); setEditSetup(false); }} />}
+        {editSetup && <Setup initial={pTarget} onClose={() => setEditSetup(false)} onDone={(v) => { setPTarget(v); setEditSetup(false); }} />}
 
         {toast && (
           <div style={{ position: "absolute", left: "50%", bottom: 96, transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 12, padding: "8px 8px 8px 18px", background: activeC.ink + "ec", color: activeC.base, borderRadius: 100, zIndex: 4, fontSize: 13.5, animation: "hewnFade 240ms ease", backdropFilter: "blur(6px)", maxWidth: "88%" }}>
             <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{toast.msg}</span>
-            {toast.withUndo && <button onClick={doUndo} style={{ border: "none", background: "rgba(255,255,255,0.12)", color: activeC.base, cursor: "pointer", fontSize: 13, fontWeight: 600, padding: "7px 16px", borderRadius: 100, flex: "0 0 auto" }}>Undo</button>}
+            {toast.withUndo && <button onClick={doUndo} style={{ border: "none", background: "rgba(255,255,255,0.12)", color: activeC.base, cursor: "pointer", fontSize: 13, fontWeight: 600, padding: "7px 16px", borderRadius: 100, flex: "0 0 auto" }}>{t("undo")}</button>}
           </div>
         )}
 
@@ -1324,19 +1570,19 @@ function Hewn() {
           <div onClick={() => setSettings(false)} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.22)", zIndex: 5 }} />
           <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 6, background: activeC.base, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: "26px 26px calc(env(safe-area-inset-bottom) + 34px)", boxShadow: "0 -20px 50px rgba(0,0,0,0.24)", animation: "hewnFade 260ms ease" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 26 }}>
-              <span style={{ fontFamily: "'Fraunces', serif", fontSize: 22, color: activeC.ink }}>Targets</span>
+              <span style={{ fontFamily: "'Fraunces', serif", fontSize: 22, color: activeC.ink }}>{t("targets")}</span>
               <button onClick={() => setSettings(false)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute }}><IX size={18} /></button>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
-              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>Protein +</span>
+              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>{t("proteinPlusName")}</span>
               <Stepper value={pTarget} step={5} unit="g" onChange={(d) => setPTarget((v) => Math.max(10, v + d))} />
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>Movement</span>
+              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>{t("movementName")}</span>
               <Stepper value={mTarget} step={5} unit="min" onChange={(d) => setMTarget((v) => Math.max(5, v + d))} />
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 22 }}>
-              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>Appearance</span>
+              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>{t("appearance")}</span>
               <div style={{ display: "flex", gap: 6 }}>
                 {["light","dark","system"].map(a => (
                   <button key={a} onClick={() => setAppearance(a)}
@@ -1345,16 +1591,32 @@ function Hewn() {
                       color: appearance === a ? activeC.base : activeC.ink,
                       fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12.5, fontWeight: 500,
                       transition: "background 280ms, color 280ms" }}>
-                    {a.charAt(0).toUpperCase()+a.slice(1)}
+                    {t(a)}
                   </button>
                 ))}
               </div>
             </div>
-            <div style={{ marginTop: 20, fontSize: 12.5, color: activeC.inkMute, lineHeight: 1.5 }}>Protein + is your add-on target on top of regular meals. Change anytime.</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 22 }}>
+              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>{t("language")}</span>
+              <div style={{ display: "flex", gap: 6 }}>
+                {["system","en","ru"].map(l => (
+                  <button key={l} onClick={() => setLangPref(l)}
+                    style={{ height: 34, padding: "0 13px", borderRadius: 10, border: "none", cursor: "pointer",
+                      background: langPref === l ? activeC.ink : activeC.inkFaint,
+                      color: langPref === l ? activeC.base : activeC.ink,
+                      fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12.5, fontWeight: 500,
+                      transition: "background 280ms, color 280ms" }}>
+                    {t("lang_" + l)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div style={{ marginTop: 20, fontSize: 12.5, color: activeC.inkMute, lineHeight: 1.5 }}>{t("proteinPlusHint")}</div>
           </div>
         </>)}
       </div>
     </div>
+    </LangCtx.Provider>
     </ThemeCtx.Provider>
   );
 }

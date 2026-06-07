@@ -213,7 +213,30 @@ function prev(n) {
   return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 }
 
+const PLATFORMS = {
+  ios: {
+    // iPhone 14 Pro Max: 430×932 CSS → ×3 = 1290×2796
+    viewport: { width: 430, height: 932 },
+    deviceScaleFactor: 3,
+    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
+    outDir: 'screenshots',
+    prefix: '',
+  },
+  android: {
+    // Pixel 7 Pro: 412×892 CSS → ×3.5 = 1442×3122 (Play Store phone screenshot range)
+    viewport: { width: 412, height: 892 },
+    deviceScaleFactor: 3.5,
+    userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 7 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+    outDir: 'screenshots-android',
+    prefix: 'android-',
+  },
+};
+
 async function run() {
+  const platform = process.argv[2] === 'android' ? 'android' : 'ios';
+  const cfg = PLATFORMS[platform];
+  console.log(`Platform: ${platform}`);
+
   const { server, port } = await serve();
   const url = `http://127.0.0.1:${port}/`;
   console.log(`Serving on ${url}`);
@@ -223,14 +246,13 @@ async function run() {
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
   });
 
-  // iPhone 14 Pro Max: 430×932 CSS → ×3 = 1290×2796
   const ctx = await browser.newContext({
-    viewport: { width: 430, height: 932 },
-    deviceScaleFactor: 3,
-    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
+    viewport: cfg.viewport,
+    deviceScaleFactor: cfg.deviceScaleFactor,
+    userAgent: cfg.userAgent,
   });
 
-  const outDir = join(ROOT, 'screenshots');
+  const outDir = join(ROOT, cfg.outDir);
 
   for (const sc of SCENARIOS) {
     console.log(`Shooting ${sc.name}…`);
@@ -249,10 +271,10 @@ async function run() {
     await sc.action(page);
 
     await page.screenshot({
-      path: `${outDir}/${sc.name}.png`,
+      path: `${outDir}/${cfg.prefix}${sc.name}.png`,
       fullPage: false,
     });
-    console.log(`  → ${outDir}/${sc.name}.png`);
+    console.log(`  → ${outDir}/${cfg.prefix}${sc.name}.png`);
     await page.close();
   }
 

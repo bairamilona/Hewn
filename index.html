@@ -1117,18 +1117,18 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
       {/* Detail panel — dither canvas background + giant numbers overlay */}
       <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
         <canvas ref={detailCanvasRef}
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.22 }} />
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.07 }} />
         <div style={{ position: "relative", zIndex: 1, padding: "28px 26px 32px" }}>
           {sel && sel.entry && (sel.entry.p > 0 || sel.entry.m > 0) ? (
             <div style={{ animation: "hewnFade 280ms ease" }}>
-              <div style={{ fontSize: 12, fontFamily: "'Hanken Grotesk', sans-serif", color: C.inkMute, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 28 }}>
+              <div style={{ fontSize: 12, fontFamily: "'Hanken Grotesk', sans-serif", color: C.ink, opacity: 0.42, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 28 }}>
                 {sel.isToday ? t("today") : longDate(lang, sel.d)}
               </div>
               <div style={{ marginBottom: 22 }}>
                 <div style={{ fontFamily: "'Fraunces', serif", fontSize: 164, fontWeight: 400, lineHeight: 0.85, color: C.ink }}>
                   {Math.round(sel.entry.p)}
                 </div>
-                <div style={{ fontSize: 16, color: C.inkMute, fontFamily: "'Hanken Grotesk', sans-serif", marginTop: 10 }}>
+                <div style={{ fontSize: 16, color: C.ink, opacity: 0.55, fontFamily: "'Hanken Grotesk', sans-serif", marginTop: 10 }}>
                   / {sel.entry.pTarget || 100} {t("proteinUnitLabel")}
                 </div>
               </div>
@@ -1136,15 +1136,15 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
                 <div style={{ fontFamily: "'Fraunces', serif", fontSize: 100, fontWeight: 400, lineHeight: 0.88, color: C.ink }}>
                   {Math.round(sel.entry.m)}
                 </div>
-                <div style={{ fontSize: 15, color: C.inkMute, fontFamily: "'Hanken Grotesk', sans-serif", marginTop: 8 }}>
+                <div style={{ fontSize: 15, color: C.ink, opacity: 0.55, fontFamily: "'Hanken Grotesk', sans-serif", marginTop: 8 }}>
                   / {sel.entry.mTarget || 30} {t("movementUnitLabel")}
                 </div>
               </div>
               {sel.entry.w > 0 && (
-                <div style={{ fontSize: 13, color: C.inkMute, marginTop: 12 }}>{glassesText(lang, sel.entry.w)}</div>
+                <div style={{ fontSize: 13, color: C.ink, opacity: 0.55, marginTop: 12 }}>{glassesText(lang, sel.entry.w)}</div>
               )}
               {sel.entry.note && (
-                <div style={{ fontSize: 13, color: C.inkMute, marginTop: 6, fontStyle: "italic" }}>"{sel.entry.note}"</div>
+                <div style={{ fontSize: 13, color: C.ink, opacity: 0.55, marginTop: 6, fontStyle: "italic" }}>"{sel.entry.note}"</div>
               )}
             </div>
           ) : (

@@ -1,7 +1,10 @@
-const V = "hewn-v3";
+const V = "hewn-v4";
 const CACHE = [
   "/",
   "/index.html",
+  "/vendor/react.js",
+  "/vendor/react-dom.js",
+  "/vendor/babel.js",
   "/assets/emojis/state1.png",
   "/assets/emojis/state2.png",
   "/assets/emojis/state3.png",
@@ -12,6 +15,15 @@ const CACHE = [
   "/assets/icons/icon-192.png",
   "/assets/icons/icon-512.png"
 ];
+
+// Map the runtime CDN libraries to same-origin vendored copies. If unpkg is
+// ever unreachable (outage, blocked network, region, ad-blocker) the app would
+// white-screen; serving these locally makes it robust and fully offline-capable.
+const CDN_TO_VENDOR = {
+  "https://unpkg.com/react@18/umd/react.production.min.js": "/vendor/react.js",
+  "https://unpkg.com/react-dom@18/umd/react-dom.production.min.js": "/vendor/react-dom.js",
+  "https://unpkg.com/@babel/standalone/babel.min.js": "/vendor/babel.js"
+};
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(V).then(c => c.addAll(CACHE)));
@@ -25,13 +37,22 @@ self.addEventListener("activate", e => {
   self.clients.claim();
 });
 
-// Network-first for the app shell (HTML) so users always get the latest code;
-// cache-first for static assets (images) for speed and offline use.
 self.addEventListener("fetch", e => {
   const req = e.request;
+
+  // 1) Redirect known CDN libraries to the vendored same-origin files.
+  const vendor = CDN_TO_VENDOR[req.url];
+  if (vendor) {
+    e.respondWith(
+      caches.match(vendor).then(c => c || fetch(vendor))
+    );
+    return;
+  }
+
+  // 2) Network-first for the app shell (HTML) so users always get latest code;
+  //    fall back to cache when offline.
   const isDoc = req.mode === "navigate" ||
     (req.method === "GET" && req.headers.get("accept")?.includes("text/html"));
-
   if (isDoc) {
     e.respondWith(
       fetch(req)
@@ -45,6 +66,7 @@ self.addEventListener("fetch", e => {
     return;
   }
 
+  // 3) Cache-first for everything else (images, vendored assets).
   e.respondWith(
     caches.match(req).then(cached => cached || fetch(req))
   );

@@ -1,9 +1,5 @@
 {
   "appId": "com.hewn.app",
   "appName": "Hewn",
-  "webDir": "www",
-  "server": {
-    "url": "https://hewn-mauve.vercel.app",
-    "cleartext": false
-  }
+  "webDir": "www"
 }

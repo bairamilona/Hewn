@@ -713,9 +713,9 @@ function EggRow({ count, onChange, max = 6 }) {
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>{eggs}</div>
       <div style={{ display: "flex", gap: 8 }}>
         <button onClick={() => onChange(Math.max(0.5, count - 0.5))}
-          style={{ flex: 1, height: 38, borderRadius: 100, border: `0.3px solid ${C.inkMute}`, cursor: "pointer", background: "transparent", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 }}>{t("minusHalf")}</button>
+          style={{ flex: 1, height: 38, borderRadius: 100, border: `0.3px solid ${C.inkMute}`, cursor: "pointer", background: "transparent", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 16.5 }}>{t("minusHalf")}</button>
         <button onClick={() => onChange(count + 0.5)}
-          style={{ flex: 1, height: 38, borderRadius: 100, border: `0.3px solid ${C.inkMute}`, cursor: "pointer", background: "transparent", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 }}>{t("plusHalf")}</button>
+          style={{ flex: 1, height: 38, borderRadius: 100, border: `0.3px solid ${C.inkMute}`, cursor: "pointer", background: "transparent", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 16.5 }}>{t("plusHalf")}</button>
       </div>
     </div>
   );
@@ -726,12 +726,12 @@ function NumPicker({ count, onChange, unit }) {
   const C = React.useContext(ThemeCtx);
   const { lang, t } = React.useContext(LangCtx);
   const big = { width: 46, height: 46, borderRadius: "50%", border: `0.3px solid ${C.inkMute}`, cursor: "pointer", background: "transparent", color: C.ink, display: "grid", placeItems: "center" };
-  const small = { flex: 1, height: 38, borderRadius: 100, border: `0.3px solid ${C.inkMute}`, cursor: "pointer", background: "transparent", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14 };
+  const small = { flex: 1, height: 38, borderRadius: 100, border: `0.3px solid ${C.inkMute}`, cursor: "pointer", background: "transparent", color: C.ink, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 16.5 };
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 18, marginBottom: 12 }}>
         <button style={big} onClick={() => onChange(Math.max(0.5, count - 1))}><IMinus size={18} /></button>
-        <div style={{ minWidth: 92, textAlign: "center", fontFamily: "'Fraunces', serif", fontSize: 26 }}>{fmtCount(count)} <span style={{ fontSize: 15, color: C.inkMute }}>{pluralUnit(lang, unit, count)}</span></div>
+        <div style={{ minWidth: 92, textAlign: "center", fontFamily: "'Fraunces', serif", fontSize: 29 }}>{fmtCount(count)} <span style={{ fontSize: 17.5, color: C.inkMute }}>{pluralUnit(lang, unit, count)}</span></div>
         <button style={big} onClick={() => onChange(count + 1)}><IPlus size={18} /></button>
       </div>
       <div style={{ display: "flex", gap: 8 }}>
@@ -751,8 +751,8 @@ function Chip({ name, amount, unit, block, onTap, dim }) {
       fontFamily: "'Hanken Grotesk', sans-serif", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
       opacity: dim ? 0.45 : 1, transition: "background 160ms ease, color 160ms ease, border-color 160ms ease",
       padding: "0 4px" }}>
-    <span style={{ fontSize: 14.5, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>{name}</span>
-    <span style={{ fontSize: 11, color: C.inkMute, display: "inline-flex", alignItems: "center" }}>
+    <span style={{ fontSize: 17, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>{name}</span>
+    <span style={{ fontSize: 13, color: C.inkMute, display: "inline-flex", alignItems: "center" }}>
       {block ? <><Block />1 {unit}</> : <>+{amount} {unit}</>}
     </span>
   </button>);
@@ -779,23 +779,23 @@ function Metric({ label, addLabel, value, target, unit, presets, onAdd, done, on
               style={{ transition: "stroke-dasharray 600ms cubic-bezier(.25,.1,.25,1)" }} />
           </svg>
           <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-            <div key={logCount} style={{ fontFamily: "'Fraunces', serif", fontSize: 20, lineHeight: 1, color: C.ink,
+            <div key={logCount} style={{ fontFamily: "'Fraunces', serif", fontSize: 22.5, lineHeight: 1, color: C.ink,
               animation: logCount > 0 ? "hewnLog 380ms cubic-bezier(.25,.1,.25,1)" : "none" }}>
               {Math.round(value)}
             </div>
-            <div style={{ fontSize: 8, color: C.inkMute, textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 1 }}>{measureUnit(lang, unit)}</div>
+            <div style={{ fontSize: 9.5, color: C.inkMute, textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 1 }}>{measureUnit(lang, unit)}</div>
           </div>
         </div>
         {/* Text + add button */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.22em", textTransform: "uppercase", color: C.inkMute, marginBottom: 4 }}>{label}</div>
-          <div style={{ fontSize: 11.5, color: C.inkMute, marginBottom: 9 }}>{t("of", { target, unit: measureUnit(lang, unit) })}</div>
+          <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.22em", textTransform: "uppercase", color: C.inkMute, marginBottom: 4 }}>{label}</div>
+          <div style={{ fontSize: 13.5, color: C.inkMute, marginBottom: 9 }}>{t("of", { target, unit: measureUnit(lang, unit) })}</div>
           <button onClick={onMore} disabled={done}
             style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "7px 17px",
               borderRadius: 100, border: `0.3px solid ${done ? C.inkMute : C.ink}`,
               background: done ? "transparent" : C.ink,
               color: done ? C.inkMute : C.base,
-              fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13.5, fontWeight: 600,
+              fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 16, fontWeight: 600,
               cursor: done ? "default" : "pointer", opacity: done ? 0.45 : 1 }}>
             <IPlus size={13} /> {addLabel}
           </button>
@@ -808,7 +808,7 @@ function Metric({ label, addLabel, value, target, unit, presets, onAdd, done, on
             style={{ flex: "0 0 auto", padding: "4px 11px", borderRadius: 100,
               border: `0.3px solid ${done ? C.inkFaint : C.inkMute}`,
               background: "transparent", color: done ? C.inkMute : C.ink,
-              fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 11,
+              fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13,
               cursor: done ? "default" : "pointer", opacity: done ? 0.35 : 1,
               display: "inline-flex", alignItems: "center", gap: 2 }}>
             {block && <Block />}
@@ -843,7 +843,7 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks, portionRef, 
     {left}{right}
   </div>);
   const closeBtn = <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute }}><IX size={18} /></button>;
-  const titleEl = (t) => <span style={{ fontFamily: "'Fraunces', serif", fontSize: 22 }}>{t}</span>;
+  const titleEl = (t) => <span style={{ fontFamily: "'Fraunces', serif", fontSize: 24.5 }}>{t}</span>;
 
   if (!blocks) {
     return (<>
@@ -858,12 +858,12 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks, portionRef, 
                 padding: "11px 18px", display: "flex", alignItems: "center", justifyContent: "space-between",
                 textAlign: "left" }}>
               <div>
-                <span style={{ fontSize: 14.5, fontWeight: 500 }}>{movementLabel(lang, it)}</span>
-                {it.note && <span style={{ fontSize: 11, color: C.inkMute, marginLeft: 8 }}>{movementNote(lang, it)}</span>}
+                <span style={{ fontSize: 17, fontWeight: 500 }}>{movementLabel(lang, it)}</span>
+                {it.note && <span style={{ fontSize: 13, color: C.inkMute, marginLeft: 8 }}>{movementNote(lang, it)}</span>}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0, marginLeft: 10 }}>
-                {it.cal && <span style={{ fontSize: 10.5, color: C.inkMute }}>~{it.cal} {t("kcal")}</span>}
-                <span style={{ fontSize: 11, color: C.inkMute }}>+{it.v} {t("min")}</span>
+                {it.cal && <span style={{ fontSize: 12.5, color: C.inkMute }}>~{it.cal} {t("kcal")}</span>}
+                <span style={{ fontSize: 13, color: C.inkMute }}>+{it.v} {t("min")}</span>
                 {it.lift && (
                   <div style={{ display: "flex", gap: 2.5 }}>
                     {[1,2,3].map(d => (
@@ -889,17 +889,17 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks, portionRef, 
         {headerRow(titleEl(t("chooseFood")), closeBtn)}
         {PROTEIN_GROUPS.map((grp) => (
           <div key={grp} style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: C.inkMute, marginBottom: 9 }}>{groupLabel(lang, grp)}</div>
+            <div style={{ fontSize: 13, letterSpacing: "0.16em", textTransform: "uppercase", color: C.inkMute, marginBottom: 9 }}>{groupLabel(lang, grp)}</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
               {presets.filter((it) => it.g === grp).sort((a,b) => b.v - a.v).map((it) => (
                 <button key={it.n} onClick={() => { setFood(it); setCount(1); }}
                   style={{ height: "auto", border: `0.3px solid ${C.inkMute}`, borderRadius: 100, cursor: "pointer",
                     background: "transparent", color: C.ink,
-                    fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13.5, fontWeight: 500,
+                    fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 16, fontWeight: 500,
                     padding: "7px 14px", textAlign: "left",
                     display: "flex", flexDirection: "column", gap: 1 }}>
                   <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{foodLabel(lang, it)}</span>
-                  <span style={{ fontSize: 10, color: C.inkMute, fontWeight: 400 }}>{it.v}{measureUnit(lang, "g")} / {(lang === "ru" && RU_UNITS[it.u]) ? RU_UNITS[it.u][0] : it.u}</span>
+                  <span style={{ fontSize: 12, color: C.inkMute, fontWeight: 400 }}>{it.v}{measureUnit(lang, "g")} / {(lang === "ru" && RU_UNITS[it.u]) ? RU_UNITS[it.u][0] : it.u}</span>
                 </button>
               ))}
             </div>
@@ -916,7 +916,7 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks, portionRef, 
   const qLabel = food.u === "egg" ? t("howManyEggs") : egg ? t("howManyEggPieces") : t("howManyUnits", { unit: pluralUnit(lang, food.u, 2) });
   const foodName = lang === "ru" ? foodLabel(lang, food) : food.n.split(" (")[0].toLowerCase();
   const countUnitLabel = egg ? pluralUnit(lang, food.u === "egg" ? "egg" : "piece", count) : pluralUnit(lang, food.u, count);
-  const backBtn = <button onClick={() => setFood(null)} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13.5, display: "inline-flex", alignItems: "center", gap: 4, padding: 0 }}>{t("back")}</button>;
+  const backBtn = <button onClick={() => setFood(null)} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 16, display: "inline-flex", alignItems: "center", gap: 4, padding: 0 }}>{t("back")}</button>;
 
   const est = (mode === "visual") ? estimateByRef(visRef, visMult, food.n) : null;
   const MULTS = [0.5, 1, 1.5, 2];
@@ -925,7 +925,7 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks, portionRef, 
     <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.18)", zIndex: 5 }} />
     <div style={sheetWrap}>
       {headerRow(backBtn, closeBtn)}
-      <div style={{ fontFamily: "'Fraunces', serif", fontSize: 24, marginBottom: 16 }}>{foodLabel(lang, food)}</div>
+      <div style={{ fontFamily: "'Fraunces', serif", fontSize: 27, marginBottom: 16 }}>{foodLabel(lang, food)}</div>
 
       {/* Mode toggle — only for non-actual-egg foods */}
       {!isActualEgg && (
@@ -935,7 +935,7 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks, portionRef, 
               style={{ flex: 1, height: 36, borderRadius: 10, border: "none", cursor: "pointer",
                 background: mode === m ? C.ink : C.inkFaint,
                 color: mode === m ? C.base : C.ink,
-                fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, fontWeight: 600 }}>
+                fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 15.5, fontWeight: 600 }}>
               {m === "exact" ? t("exact") : `${t("byEye")} 👁`}
             </button>
           ))}
@@ -943,14 +943,14 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks, portionRef, 
       )}
 
       {mode === "exact" || isActualEgg ? (<>
-        <div style={{ fontSize: 11.5, letterSpacing: "0.16em", textTransform: "uppercase", color: C.inkMute, marginBottom: 14 }}>{qLabel}</div>
+        <div style={{ fontSize: 13.5, letterSpacing: "0.16em", textTransform: "uppercase", color: C.inkMute, marginBottom: 14 }}>{qLabel}</div>
         {egg ? <EggRow count={count} onChange={setCount} /> : <NumPicker count={count} onChange={setCount} unit={food.u} />}
-        <div style={{ textAlign: "center", margin: "22px 0 18px", fontFamily: "'Fraunces', serif", fontSize: 17, color: C.ink }}>
+        <div style={{ textAlign: "center", margin: "22px 0 18px", fontFamily: "'Fraunces', serif", fontSize: 20, color: C.ink }}>
           {t("countOfFood", { count: fmtCount(count), unit: countUnitLabel, food: foodName })}
         </div>
         <button onClick={() => { onPick(grams, foodLabel(lang, food)); onClose(); }}
           style={{ width: "100%", height: 58, borderRadius: 16, border: "none", cursor: "pointer", background: C.accent, color: C.base,
-            fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 17, fontWeight: 600 }}>
+            fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 20, fontWeight: 600 }}>
           {t("add")}
         </button>
       </>) : (<>
@@ -963,11 +963,11 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks, portionRef, 
                 style={{ border: `0.3px solid ${sel ? C.ink : C.inkMute}`, borderRadius: 14, cursor: "pointer",
                   background: sel ? C.ink : "transparent", color: sel ? C.base : C.ink,
                   padding: "10px 6px", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                <span style={{ fontSize: 26, lineHeight: 1 }}>{ref.emoji}</span>
-                <span style={{ fontSize: 11, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500, lineHeight: 1.2, textAlign: "center" }}>
+                <span style={{ fontSize: 29, lineHeight: 1 }}>{ref.emoji}</span>
+                <span style={{ fontSize: 13, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500, lineHeight: 1.2, textAlign: "center" }}>
                   {visRefLabel(ref, lang)}
                 </span>
-                <span style={{ fontSize: 10, opacity: 0.5 }}>{ref.ml} ml</span>
+                <span style={{ fontSize: 12, opacity: 0.5 }}>{ref.ml} ml</span>
               </button>
             );
           })}
@@ -980,7 +980,7 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks, portionRef, 
               style={{ flex: 1, height: 36, borderRadius: 10, border: "none", cursor: "pointer",
                 background: visMult === m ? C.ink : C.inkFaint,
                 color: visMult === m ? C.base : C.ink,
-                fontFamily: "'Fraunces', serif", fontSize: 15 }}>
+                fontFamily: "'Fraunces', serif", fontSize: 17.5 }}>
               ×{m}
             </button>
           ))}
@@ -989,11 +989,11 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks, portionRef, 
         {/* Estimate preview */}
         {est && (
           <div style={{ marginBottom: 18, padding: "14px 18px", borderRadius: 14, background: C.inkFaint }}>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 28, color: C.ink, lineHeight: 1 }}>
+            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 31.5, color: C.ink, lineHeight: 1 }}>
               {est.proteinLo}–{est.proteinHi}
-              <span style={{ fontSize: 16, color: C.inkMute, marginLeft: 6, fontFamily: "'Hanken Grotesk', sans-serif" }}>g protein</span>
+              <span style={{ fontSize: 19, color: C.inkMute, marginLeft: 6, fontFamily: "'Hanken Grotesk', sans-serif" }}>g protein</span>
             </div>
-            <div style={{ fontSize: 12, color: C.inkMute, marginTop: 6, fontFamily: "'Hanken Grotesk', sans-serif" }}>
+            <div style={{ fontSize: 14, color: C.inkMute, marginTop: 6, fontFamily: "'Hanken Grotesk', sans-serif" }}>
               ≈ {est.weightLo}–{est.weightHi} g · {est.tight ? "±12%" : "±20%"}
             </div>
           </div>
@@ -1003,7 +1003,7 @@ function MoreSheet({ title, unit, presets, onPick, onClose, blocks, portionRef, 
           disabled={!est}
           style={{ width: "100%", height: 58, borderRadius: 16, border: "none", cursor: est ? "pointer" : "default",
             background: C.accent, color: C.base,
-            fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 17, fontWeight: 600, opacity: est ? 1 : 0.5 }}>
+            fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 20, fontWeight: 600, opacity: est ? 1 : 0.5 }}>
           {t("add")}
         </button>
       </>)}
@@ -1016,7 +1016,7 @@ function Stepper({ value, step, unit, onChange }) {
   const btn = { width: 40, height: 40, borderRadius: 12, border: "none", cursor: "pointer", background: C.inkFaint, color: C.ink, display: "grid", placeItems: "center" };
   return (<div style={{ display: "flex", alignItems: "center", gap: 14 }}>
     <button style={btn} onClick={() => onChange(-step)}><IMinus size={16} /></button>
-    <div style={{ fontFamily: "'Fraunces', serif", fontSize: 22, minWidth: 78, textAlign: "center" }}>{value} {measureUnit(lang, unit)}</div>
+    <div style={{ fontFamily: "'Fraunces', serif", fontSize: 24.5, minWidth: 78, textAlign: "center" }}>{value} {measureUnit(lang, unit)}</div>
     <button style={btn} onClick={() => onChange(step)}><IPlus size={16} /></button>
   </div>);
 }
@@ -1040,25 +1040,25 @@ function Setup({ initial, portionRef: initRef, onDone, onClose }) {
   if (step === 1) return (
     <div style={wrap}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, opacity: 0, animation: "hewnFadeSlow 700ms ease forwards", animationDelay: "40ms" }}>
-        <span style={{ fontFamily: "'Fraunces', serif", fontSize: 25, fontWeight: 400 }}>{t("addOnGoalTitle")}</span>
+        <span style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 400 }}>{t("addOnGoalTitle")}</span>
         {onClose && <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute }}><IX size={18} /></button>}
       </div>
-      <p style={{ fontSize: 13.5, color: C.inkMute, lineHeight: 1.6, marginTop: 0, marginBottom: 0, opacity: 0, animation: "hewnFadeSlow 700ms ease forwards", animationDelay: "100ms" }}>
+      <p style={{ fontSize: 16, color: C.inkMute, lineHeight: 1.6, marginTop: 0, marginBottom: 0, opacity: 0, animation: "hewnFadeSlow 700ms ease forwards", animationDelay: "100ms" }}>
         {t("addOnGoalQuestion")}
       </p>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 28, opacity: 0, animation: "hewnFadeSlow 700ms ease forwards", animationDelay: "220ms" }}>
         <div style={{ textAlign: "center" }}>
           <span style={{ fontFamily: "'Fraunces', serif", fontSize: 64, fontWeight: 400 }}>{val}</span>
-          <span style={{ fontSize: 22, color: C.inkMute, marginLeft: 6 }}>{gUnit}</span>
+          <span style={{ fontSize: 24.5, color: C.inkMute, marginLeft: 6 }}>{gUnit}</span>
         </div>
         <input type="range" min={10} max={120} step={5} value={val} onChange={e => setVal(Number(e.target.value))}
           style={{ width: "100%", accentColor: C.ink, height: 2 }} />
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: C.inkMute }}>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: C.inkMute }}>
           <span>10 {gUnit}</span><span>120 {gUnit}</span>
         </div>
       </div>
       <button onClick={() => onClose ? onDone(val, pickedRef) : setStep(2)}
-        style={{ width: "100%", height: 58, borderRadius: 16, border: "none", cursor: "pointer", background: C.ink, color: C.base, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 17, fontWeight: 600, opacity: 0, animation: "hewnFadeSlow 800ms ease forwards", animationDelay: "360ms" }}>
+        style={{ width: "100%", height: 58, borderRadius: 16, border: "none", cursor: "pointer", background: C.ink, color: C.base, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 20, fontWeight: 600, opacity: 0, animation: "hewnFadeSlow 800ms ease forwards", animationDelay: "360ms" }}>
         {onClose ? t("save") : t("next") + " →"}
       </button>
     </div>
@@ -1068,8 +1068,8 @@ function Setup({ initial, portionRef: initRef, onDone, onClose }) {
   return (
     <div style={wrap}>
       <div style={{ opacity: 0, animation: "hewnFadeSlow 700ms ease forwards", animationDelay: "40ms" }}>
-        <div style={{ fontFamily: "'Fraunces', serif", fontSize: 25, fontWeight: 400, marginBottom: 10 }}>{t("refPortionTitle")}</div>
-        <p style={{ fontSize: 13.5, color: C.inkMute, lineHeight: 1.6, margin: 0 }}>{t("refPortionHint")}</p>
+        <div style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 400, marginBottom: 10 }}>{t("refPortionTitle")}</div>
+        <p style={{ fontSize: 16, color: C.inkMute, lineHeight: 1.6, margin: 0 }}>{t("refPortionHint")}</p>
       </div>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 12, opacity: 0, animation: "hewnFadeSlow 700ms ease forwards", animationDelay: "180ms" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
@@ -1082,7 +1082,7 @@ function Setup({ initial, portionRef: initRef, onDone, onClose }) {
                   padding: "16px 8px", display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
                   transition: "background 160ms ease, color 160ms ease" }}>
                 <span style={{ fontSize: 36, lineHeight: 1 }}>{ref.emoji}</span>
-                <span style={{ fontSize: 12, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 600, textAlign: "center", lineHeight: 1.2 }}>
+                <span style={{ fontSize: 14, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 600, textAlign: "center", lineHeight: 1.2 }}>
                   {visRefLabel(ref, lang)}
                 </span>
               </button>
@@ -1091,7 +1091,7 @@ function Setup({ initial, portionRef: initRef, onDone, onClose }) {
         </div>
       </div>
       <button onClick={() => onDone(val, pickedRef)}
-        style={{ width: "100%", height: 58, borderRadius: 16, border: "none", cursor: "pointer", background: C.ink, color: C.base, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 17, fontWeight: 600, opacity: 0, animation: "hewnFadeSlow 800ms ease forwards", animationDelay: "360ms" }}>
+        style={{ width: "100%", height: 58, borderRadius: 16, border: "none", cursor: "pointer", background: C.ink, color: C.base, fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 20, fontWeight: 600, opacity: 0, animation: "hewnFadeSlow 800ms ease forwards", animationDelay: "360ms" }}>
         {t("begin")}
       </button>
     </div>
@@ -1267,7 +1267,7 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
   return (
     <div style={{ position: "absolute", inset: 0, zIndex: 7, background: C.base, display: "flex", flexDirection: "column", animation: "hewnFade 380ms ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "24px 24px 0" }}>
-        <span style={{ fontFamily: "'Fraunces', serif", fontSize: 22, color: C.ink }}>{t("yourShelf")}</span>
+        <span style={{ fontFamily: "'Fraunces', serif", fontSize: 24.5, color: C.ink }}>{t("yourShelf")}</span>
         <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute }}><IX size={18} /></button>
       </div>
       <div ref={rowRef} style={{ overflowX: "auto", overflowY: "hidden", padding: "18px 18px 10px", scrollbarWidth: "none" }}>
@@ -1291,7 +1291,7 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
                       </div>
                   }
                 </div>
-                <div style={{ fontSize: 10, marginTop: 6, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: isToday ? 600 : 500, letterSpacing: "0.04em",
+                <div style={{ fontSize: 12, marginTop: 6, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: isToday ? 600 : 500, letterSpacing: "0.04em",
                   color: isToday ? C.accent : C.inkMute }}>
                   {isToday ? t("today") : dow}
                 </div>
@@ -1308,14 +1308,14 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
         <div style={{ position: "relative", zIndex: 1, padding: "28px 26px 32px" }}>
           {sel && sel.entry && (sel.entry.p > 0 || sel.entry.m > 0) ? (
             <div style={{ animation: "hewnFade 280ms ease" }}>
-              <div style={{ fontSize: 12, fontFamily: "'Hanken Grotesk', sans-serif", color: C.ink, opacity: 0.55, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 28 }}>
+              <div style={{ fontSize: 14, fontFamily: "'Hanken Grotesk', sans-serif", color: C.ink, opacity: 0.55, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 28 }}>
                 {sel.isToday ? t("today") : longDate(lang, sel.d)}
               </div>
               <div style={{ marginBottom: 22 }}>
                 <div style={{ fontFamily: "'Fraunces', serif", fontSize: 164, fontWeight: 400, lineHeight: 0.85, color: C.ink }}>
                   {Math.round(sel.entry.p)}
                 </div>
-                <div style={{ fontSize: 16, color: C.ink, opacity: 0.7, fontFamily: "'Hanken Grotesk', sans-serif", marginTop: 10 }}>
+                <div style={{ fontSize: 19, color: C.ink, opacity: 0.7, fontFamily: "'Hanken Grotesk', sans-serif", marginTop: 10 }}>
                   / {sel.entry.pTarget || 100} {t("proteinUnitLabel")}
                 </div>
               </div>
@@ -1323,15 +1323,15 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
                 <div style={{ fontFamily: "'Fraunces', serif", fontSize: 100, fontWeight: 400, lineHeight: 0.88, color: C.ink }}>
                   {Math.round(sel.entry.m)}
                 </div>
-                <div style={{ fontSize: 15, color: C.ink, opacity: 0.7, fontFamily: "'Hanken Grotesk', sans-serif", marginTop: 8 }}>
+                <div style={{ fontSize: 17.5, color: C.ink, opacity: 0.7, fontFamily: "'Hanken Grotesk', sans-serif", marginTop: 8 }}>
                   / {sel.entry.mTarget || 30} {t("movementUnitLabel")}
                 </div>
               </div>
               {sel.entry.w > 0 && (
-                <div style={{ fontSize: 13, color: C.ink, opacity: 0.7, marginTop: 12 }}>{glassesText(lang, sel.entry.w)}</div>
+                <div style={{ fontSize: 15.5, color: C.ink, opacity: 0.7, marginTop: 12 }}>{glassesText(lang, sel.entry.w)}</div>
               )}
               {sel.entry.note && (
-                <div style={{ fontSize: 13, color: C.ink, opacity: 0.7, marginTop: 6, fontStyle: "italic" }}>"{sel.entry.note}"</div>
+                <div style={{ fontSize: 15.5, color: C.ink, opacity: 0.7, marginTop: 6, fontStyle: "italic" }}>"{sel.entry.note}"</div>
               )}
               {(() => {
                 const pT = sel.entry.pTarget || 100, mT = sel.entry.mTarget || 30;
@@ -1342,14 +1342,14 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
                   : mMet ? t("dayMovement")
                   : t("dayLow");
                 return (
-                  <div style={{ marginTop: 26, paddingTop: 16, borderTop: `0.5px solid ${C.inkFaint}`, fontFamily: "'Fraunces', serif", fontSize: 17, lineHeight: 1.45, color: C.ink, opacity: 0.82, maxWidth: 300 }}>
+                  <div style={{ marginTop: 26, paddingTop: 16, borderTop: `0.5px solid ${C.inkFaint}`, fontFamily: "'Fraunces', serif", fontSize: 20, lineHeight: 1.45, color: C.ink, opacity: 0.82, maxWidth: 300 }}>
                     {msg}
                   </div>
                 );
               })()}
             </div>
           ) : (
-            <div style={{ color: C.inkMute, fontSize: 14, fontFamily: "'Hanken Grotesk', sans-serif", lineHeight: 1.6 }}>
+            <div style={{ color: C.inkMute, fontSize: 16.5, fontFamily: "'Hanken Grotesk', sans-serif", lineHeight: 1.6 }}>
               {sel ? t("restDay") : t("tapADay")}
             </div>
           )}
@@ -1372,11 +1372,11 @@ function LogSheet({ title, unit, entries, onAdd, onRemove, onClose, done }) {
     <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.18)", zIndex: 5 }} />
     <div style={sheetWrap}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <span style={{ fontFamily: "'Fraunces', serif", fontSize: 21, color: C.ink }}>{title}</span>
+        <span style={{ fontFamily: "'Fraunces', serif", fontSize: 23.5, color: C.ink }}>{title}</span>
         <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute }}><IX size={18} /></button>
       </div>
       {entries.length === 0 ? (
-        <div style={{ color: C.inkMute, fontSize: 13.5, textAlign: "center", padding: "28px 0", fontFamily: "'Hanken Grotesk', sans-serif" }}>
+        <div style={{ color: C.inkMute, fontSize: 16, textAlign: "center", padding: "28px 0", fontFamily: "'Hanken Grotesk', sans-serif" }}>
           {t("nothingLoggedYet")}
         </div>
       ) : (
@@ -1387,10 +1387,10 @@ function LogSheet({ title, unit, entries, onAdd, onRemove, onClose, done }) {
               border: `0.3px solid ${C.inkMute}`,
               animation: `hewnFade 220ms ease ${i * 30}ms both` }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 14, color: C.ink,
+                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 16.5, color: C.ink,
                   whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" }}>{e.name}</span>
               </div>
-              <span style={{ fontFamily: "'Fraunces', serif", fontSize: 14, color: C.inkMute, flexShrink: 0 }}>+{e.amount} {measureUnit(lang, unit)}</span>
+              <span style={{ fontFamily: "'Fraunces', serif", fontSize: 16.5, color: C.inkMute, flexShrink: 0 }}>+{e.amount} {measureUnit(lang, unit)}</span>
               <button onClick={() => onAdd(e.amount, e.name)} disabled={done} title={t("addAgain")}
                 style={{ width: 30, height: 30, borderRadius: "50%", border: `0.3px solid ${done ? C.inkFaint : C.inkMute}`,
                   background: "transparent", color: done ? C.inkMute : C.ink, cursor: done ? "default" : "pointer",
@@ -1421,15 +1421,15 @@ function WaterRow({ value, target, onAdd, onRemove }) {
   const glasses = target || 8;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0 2px" }}>
-      <span style={{ fontSize: 10, color: C.inkMute, letterSpacing: "0.06em", flexShrink: 0 }}>{t("waterLabel")}</span>
+      <span style={{ fontSize: 12, color: C.inkMute, letterSpacing: "0.06em", flexShrink: 0 }}>{t("waterLabel")}</span>
       <div style={{ flex: 1, display: "flex", gap: 2 }}>
         {Array.from({ length: glasses }, (_, i) => (
           <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i < value ? C.ink : C.inkFaint, transition: "background 280ms" }} />
         ))}
       </div>
-      <span style={{ fontSize: 10, color: C.inkMute, minWidth: 28, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{value}/{glasses}</span>
-      <button onClick={() => onAdd()} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute, fontSize: 16, lineHeight: 1, padding: "0 2px" }}>+</button>
-      {value > 0 && <button onClick={() => onRemove()} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute, fontSize: 16, lineHeight: 1, padding: "0 2px" }}>−</button>}
+      <span style={{ fontSize: 12, color: C.inkMute, minWidth: 28, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{value}/{glasses}</span>
+      <button onClick={() => onAdd()} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute, fontSize: 19, lineHeight: 1, padding: "0 2px" }}>+</button>
+      {value > 0 && <button onClick={() => onRemove()} style={{ border: "none", background: "none", cursor: "pointer", color: C.inkMute, fontSize: 19, lineHeight: 1, padding: "0 2px" }}>−</button>}
     </div>
   );
 }
@@ -1723,17 +1723,17 @@ function Hewn() {
         </div>
 
         <div style={{ textAlign: "center", marginBottom: 8, minHeight: 28 }}>
-          <div style={{ fontFamily: "'Fraunces', serif", fontSize: 17, color: complete ? activeC.accent : activeC.inkMute, transition: "color 600ms" }}>{headline}</div>
-          {sub && <div style={{ fontSize: 12, color: activeC.inkMute, marginTop: 3, animation: "hewnFade 700ms ease" }}>{sub}</div>}
+          <div style={{ fontFamily: "'Fraunces', serif", fontSize: 20, color: complete ? activeC.accent : activeC.inkMute, transition: "color 600ms" }}>{headline}</div>
+          {sub && <div style={{ fontSize: 14, color: activeC.inkMute, marginTop: 3, animation: "hewnFade 700ms ease" }}>{sub}</div>}
           <div style={{ marginTop: 5 }}>
             {noteEditing
               ? <input autoFocus value={note} onChange={e => setNote(e.target.value)}
                   onBlur={() => setNoteEditing(false)} onKeyDown={e => e.key === "Enter" && e.target.blur()}
                   maxLength={80} placeholder={t("notePlaceholder")}
-                  style={{ background: "none", border: "none", borderBottom: `0.3px solid ${activeC.inkMute}`, textAlign: "center", fontSize: 12, color: activeC.ink, width: "78%", outline: "none", padding: "2px 0", fontFamily: "'Hanken Grotesk', sans-serif" }} />
+                  style={{ background: "none", border: "none", borderBottom: `0.3px solid ${activeC.inkMute}`, textAlign: "center", fontSize: 14, color: activeC.ink, width: "78%", outline: "none", padding: "2px 0", fontFamily: "'Hanken Grotesk', sans-serif" }} />
               : note
-                ? <button onClick={() => setNoteEditing(true)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute, fontSize: 12, maxWidth: "80%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{note}</button>
-                : <button onClick={() => setNoteEditing(true)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkFaint, fontSize: 11, letterSpacing: "0.04em" }}>{t("addNote")}</button>
+                ? <button onClick={() => setNoteEditing(true)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute, fontSize: 14, maxWidth: "80%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{note}</button>
+                : <button onClick={() => setNoteEditing(true)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkFaint, fontSize: 13, letterSpacing: "0.04em" }}>{t("addNote")}</button>
             }
           </div>
         </div>
@@ -1743,14 +1743,14 @@ function Hewn() {
         <WaterRow value={wTo} target={wTarget} onAdd={() => setWTo(v => Math.min(wTarget, v + 1))} onRemove={() => setWTo(v => Math.max(0, v - 1))} />
 
         <div style={{ marginTop: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 22 }}>
-          <button onClick={newDay} style={{ border: "none", background: "none", cursor: "pointer", color: newDayConfirm ? activeC.ink : activeC.inkMute, fontSize: 12, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5, transition: "color 200ms" }}>
+          <button onClick={newDay} style={{ border: "none", background: "none", cursor: "pointer", color: newDayConfirm ? activeC.ink : activeC.inkMute, fontSize: 14, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5, transition: "color 200ms" }}>
             <IReset size={12} /> {newDayConfirm ? t("sure") : t("newDay")}
           </button>
-          <button onClick={() => setShelfOpen(true)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute, fontSize: 12, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5 }}>
+          <button onClick={() => setShelfOpen(true)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute, fontSize: 14, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5 }}>
             <IChevUp size={12} /> {t("shelfLabel")}
           </button>
           {streak >= 2 && (
-            <span style={{ color: streak >= 7 ? activeC.ink : activeC.inkMute, fontSize: 12, letterSpacing: "0.04em", fontVariantNumeric: "tabular-nums" }}>
+            <span style={{ color: streak >= 7 ? activeC.ink : activeC.inkMute, fontSize: 14, letterSpacing: "0.04em", fontVariantNumeric: "tabular-nums" }}>
               {"—".repeat(Math.min(streak, 5))} {streak}d
             </span>
           )}
@@ -1767,7 +1767,7 @@ function Hewn() {
         {editSetup && <Setup initial={pTarget} portionRef={portionRef} onClose={() => setEditSetup(false)} onDone={(v, ref) => { setPTarget(v); if (ref) setPortionRef(ref); setEditSetup(false); }} />}
 
         {toast && (
-          <div style={{ position: "absolute", left: "50%", top: "46%", transform: "translate(-50%, -50%)", display: "flex", alignItems: "center", gap: 12, padding: "8px 18px", background: activeC.ink + "ec", color: activeC.base, borderRadius: 100, zIndex: 4, fontSize: 13.5, animation: "hewnFade 240ms ease", backdropFilter: "blur(6px)", maxWidth: "88%" }}>
+          <div style={{ position: "absolute", left: "50%", top: "46%", transform: "translate(-50%, -50%)", display: "flex", alignItems: "center", gap: 12, padding: "8px 18px", background: activeC.ink + "ec", color: activeC.base, borderRadius: 100, zIndex: 4, fontSize: 16, animation: "hewnFade 240ms ease", backdropFilter: "blur(6px)", maxWidth: "88%" }}>
             <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{toast.msg}</span>
           </div>
         )}
@@ -1788,26 +1788,26 @@ function Hewn() {
           <div onClick={() => setSettings(false)} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.22)", zIndex: 5 }} />
           <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 6, background: activeC.base, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: "26px 26px calc(env(safe-area-inset-bottom) + 34px)", boxShadow: "0 -20px 50px rgba(0,0,0,0.24)", animation: "hewnFade 260ms ease" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 26 }}>
-              <span style={{ fontFamily: "'Fraunces', serif", fontSize: 22, color: activeC.ink }}>{t("targets")}</span>
+              <span style={{ fontFamily: "'Fraunces', serif", fontSize: 24.5, color: activeC.ink }}>{t("targets")}</span>
               <button onClick={() => setSettings(false)} style={{ border: "none", background: "none", cursor: "pointer", color: activeC.inkMute }}><IX size={18} /></button>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
-              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>{t("proteinPlusName")}</span>
+              <span style={{ fontSize: 13.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>{t("proteinPlusName")}</span>
               <Stepper value={pTarget} step={5} unit="g" onChange={(d) => setPTarget((v) => Math.max(10, v + d))} />
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>{t("movementName")}</span>
+              <span style={{ fontSize: 13.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>{t("movementName")}</span>
               <Stepper value={mTarget} step={5} unit="min" onChange={(d) => setMTarget((v) => Math.max(5, v + d))} />
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 22 }}>
-              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>{t("appearance")}</span>
+              <span style={{ fontSize: 13.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>{t("appearance")}</span>
               <div style={{ display: "flex", gap: 6 }}>
                 {["light","dark","system"].map(a => (
                   <button key={a} onClick={() => setAppearance(a)}
                     style={{ height: 34, padding: "0 13px", borderRadius: 10, border: "none", cursor: "pointer",
                       background: appearance === a ? activeC.ink : activeC.inkFaint,
                       color: appearance === a ? activeC.base : activeC.ink,
-                      fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12.5, fontWeight: 500,
+                      fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 15, fontWeight: 500,
                       transition: "background 280ms, color 280ms" }}>
                     {t(a)}
                   </button>
@@ -1815,21 +1815,21 @@ function Hewn() {
               </div>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 22 }}>
-              <span style={{ fontSize: 11.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>{t("language")}</span>
+              <span style={{ fontSize: 13.5, letterSpacing: "0.18em", textTransform: "uppercase", color: activeC.inkMute }}>{t("language")}</span>
               <div style={{ display: "flex", gap: 6 }}>
                 {["en","ru"].map(l => (
                   <button key={l} onClick={() => setLangPref(l)}
                     style={{ height: 34, padding: "0 13px", borderRadius: 10, border: "none", cursor: "pointer",
                       background: langPref === l ? activeC.ink : activeC.inkFaint,
                       color: langPref === l ? activeC.base : activeC.ink,
-                      fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 12.5, fontWeight: 500,
+                      fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 15, fontWeight: 500,
                       transition: "background 280ms, color 280ms" }}>
                     {t("lang_" + l)}
                   </button>
                 ))}
               </div>
             </div>
-            <div style={{ marginTop: 20, fontSize: 12.5, color: activeC.inkMute, lineHeight: 1.5 }}>{t("proteinPlusHint")}</div>
+            <div style={{ marginTop: 20, fontSize: 15, color: activeC.inkMute, lineHeight: 1.5 }}>{t("proteinPlusHint")}</div>
           </div>
         </>)}
       </div>

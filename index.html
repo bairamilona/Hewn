@@ -1141,29 +1141,16 @@ function ShelfTile({ polish, definition, inkColor }) {
 
           if (eMap) {
             const darkness = 1 - eMap.gray[i];
-            if (darkness > 0.15) {
-              // Face pixel: render with emoji density
-              const pinkV = eMap.pink[i];
-              if (pinkV > 0.08) {
-                const pl = Math.max(0, Math.min(N-1,
-                  Math.floor((Math.max(darkness, pinkV * 0.55) + drift * 0.4) * N + bayer - 0.5)
-                ));
-                pinkCells.push(x, y, DITH_CHARS[pl]);
-              } else {
-                const level = Math.max(0, Math.min(N-1,
-                  Math.floor((darkness + drift * 0.4) * N + bayer - 0.5)
-                ));
-                const ch = DITH_CHARS[level];
-                if (ch !== ' ') ctx.fillText(ch, (x + 0.5) * cell, (y + 0.5) * cell);
-              }
-              continue;
-            }
+            const pinkV = eMap.pink[i];
+            if (pinkV > 0.10) { pinkCells.push(x, y, '●'); continue; }       // rosy cheeks
+            if (darkness > 0.5) { ctx.fillText('●', (x + 0.5) * cell, (y + 0.5) * cell); continue; }  // eyes / mouth
+            if (darkness > 0.06) { ctx.fillText('∘', (x + 0.5) * cell, (y + 0.5) * cell); continue; } // face disc
           }
 
-          // Background: airy shimmer based on day completion — kept in a light
-          // range (never full density) so the emoji face reads clearly on top.
+          // Background outside the face — faint texture, subtle completion hint,
+          // always lighter than the disc so the face stays legible.
           const level = Math.max(0, Math.min(N-1,
-            Math.floor((0.06 + completion * 0.40 + drift) * N + bayer - 0.5)
+            Math.floor((0.04 + completion * 0.16 + drift) * N + bayer - 0.5)
           ));
           const ch = DITH_CHARS[level];
           if (ch !== ' ') ctx.fillText(ch, (x + 0.5) * cell, (y + 0.5) * cell);
@@ -1285,7 +1272,7 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
                 style={{ background: "none", border: "none", cursor: "pointer", padding: 0,
                   display: "flex", flexDirection: "column", alignItems: "center",
                   opacity: hasAny || isToday ? 1 : 0.18 }}>
-                <div style={{ width: 72, height: 72, borderRadius: 10, overflow: "hidden",
+                <div style={{ width: 84, height: 84, borderRadius: 12, overflow: "hidden",
                   outline: isSel ? "1.5px solid " + C.accent : "none", outlineOffset: 3 }}>
                   {hasAny || isToday
                     ? <ShelfTile polish={polish} definition={definition} inkColor={inkColor} />

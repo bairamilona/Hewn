@@ -110,6 +110,11 @@ const STRINGS = {
     today: "Today",
     restDay: "A rest day.",
     tapADay: "Tap a day to see the numbers.",
+    dayBoth: "Both marks met — a beautiful day.",
+    dayProtein: "Protein there. A little more movement next time.",
+    dayMovement: "Moved well. A little more protein next time.",
+    dayLow: "A quieter day — and that's alright.",
+    dayTodayGoing: "Still going — the day's not done.",
     proteinUnitLabel: "g protein",
     movementUnitLabel: "min movement",
     proteinTodayTitle: "Protein today",
@@ -173,6 +178,11 @@ const STRINGS = {
     today: "Сегодня",
     restDay: "День отдыха.",
     tapADay: "Нажми на день, чтобы увидеть цифры.",
+    dayBoth: "Обе цели взяты — прекрасный день.",
+    dayProtein: "Белок есть. В следующий раз чуть больше движения.",
+    dayMovement: "Хорошо подвигалась. В следующий раз чуть больше белка.",
+    dayLow: "День потише — и это нормально.",
+    dayTodayGoing: "Ещё идёт — день не закончен.",
     proteinUnitLabel: "г белка",
     movementUnitLabel: "мин активности",
     proteinTodayTitle: "Белок сегодня",
@@ -1323,6 +1333,20 @@ function ShelfView({ shelf, todayP, todayM, todayPTarget, todayMTarget, todayW, 
               {sel.entry.note && (
                 <div style={{ fontSize: 13, color: C.ink, opacity: 0.7, marginTop: 6, fontStyle: "italic" }}>"{sel.entry.note}"</div>
               )}
+              {(() => {
+                const pT = sel.entry.pTarget || 100, mT = sel.entry.mTarget || 30;
+                const pMet = sel.entry.p >= pT - 0.5, mMet = sel.entry.m >= mT - 0.5;
+                const msg = (pMet && mMet) ? t("dayBoth")
+                  : sel.isToday ? t("dayTodayGoing")
+                  : pMet ? t("dayProtein")
+                  : mMet ? t("dayMovement")
+                  : t("dayLow");
+                return (
+                  <div style={{ marginTop: 26, paddingTop: 16, borderTop: `0.5px solid ${C.inkFaint}`, fontFamily: "'Fraunces', serif", fontSize: 17, lineHeight: 1.45, color: C.ink, opacity: 0.82, maxWidth: 300 }}>
+                    {msg}
+                  </div>
+                );
+              })()}
             </div>
           ) : (
             <div style={{ color: C.inkMute, fontSize: 14, fontFamily: "'Hanken Grotesk', sans-serif", lineHeight: 1.6 }}>

@@ -1,20 +1,31 @@
 // Assemble the self-contained web bundle in www/ for Capacitor (iOS / Android).
 //
 // The app's JSX is PRECOMPILED to plain JavaScript here, at build time, so the
-// device never loads or runs Babel. Shipping @babel/standalone (3 MB) and
-// transforming JSX at runtime is what made the iOS build crash on launch in
-// WKWebView (slow parse + high memory → the web process gets killed). The
-// bundle now loads ready-to-run JS against the vendored React/ReactDOM globals.
+// device never loads or runs Babel. The compiler is loaded from the committed
+// vendor/babel.js (the same @babel/standalone UMD the web app vendors), so this
+// build needs NO npm packages — only Node itself. That keeps `npx cap sync`
+// working on a fresh checkout without `npm install` pulling build-only deps.
 //
 // Also downloads the editorial fonts so the app renders them fully offline.
-// Fully cross-platform (Node only, no sed). Run before `npx cap sync`:
-//   ./build-www.sh && npx cap sync
+// Run before `npx cap sync`:  ./build-www.sh && npx cap sync
 import fs from 'fs';
 import path from 'path';
-import Babel from '@babel/standalone';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname);
 process.chdir(ROOT);
+
+// --- Load Babel from the vendored UMD bundle (no node_modules needed) ---
+function loadBabel() {
+  const src = fs.readFileSync('vendor/babel.js', 'utf8');
+  const mod = { exports: {} };
+  const win = {};
+  // @babel/standalone is a UMD bundle: with module/exports present it assigns module.exports.
+  new Function('module', 'exports', 'window', 'self', 'global', src)(mod, mod.exports, win, win, win);
+  const Babel = (mod.exports && mod.exports.transform) ? mod.exports : win.Babel;
+  if (!Babel || !Babel.transform) throw new Error('Could not load Babel from vendor/babel.js');
+  return Babel;
+}
+const Babel = loadBabel();
 
 const html = fs.readFileSync('index.html', 'utf8');
 
@@ -49,7 +60,7 @@ let out = html
   .replace(fullBlock, '<script src="app.js"></script>');
 
 // --- 4. Vendor the editorial fonts (needs internet at build time) ---
-const FONT_URL = 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Hanken+Grotesk:wght@500;600&display=swap';
+const FONT_URL = 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Hanken+Grotesk:wght@500;600&display=swap';
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36';
 try {
   const res = await fetch(FONT_URL, { headers: { 'User-Agent': UA } });

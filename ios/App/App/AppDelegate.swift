@@ -47,3 +47,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
 }
+
+// MARK: - Scene delegate
+// iOS 26 requires a scene delegate CLASS to be specified. The window itself is
+// created automatically from the Main storyboard (UISceneStoryboardFile in
+// Info.plist), so this delegate only needs to exist. @objc fixes the runtime
+// class name so Info.plist can reference it as plain "SceneDelegate".
+@objc(SceneDelegate)
+class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+    var window: UIWindow?
+}
